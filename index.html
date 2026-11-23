@@ -1,0 +1,2725 @@
+```html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0EA5E9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Alimentario" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%230EA5E9'/><stop offset='100%25' stop-color='%2310B981'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='66' font-size='48' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>A</text></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%230EA5E9'/><stop offset='100%25' stop-color='%2310B981'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='66' font-size='48' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>A</text></svg>" />
+  <title>Alimentario — Inventario Cibo & Generatore Pasti</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            macro: {
+              carb: '#F97316',
+              carbTint: '#FFF7ED',
+              prot: '#E11D48',
+              protTint: '#FFF1F2',
+              veg: '#10B981',
+              vegTint: '#ECFDF5',
+              fat: '#8B5CF6',
+              fatTint: '#F5F3FF',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #F1F5F9;
+      font-family: 'Inter', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade {
+      animation: fadeSlide 0.16s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-sky-100">
+
+  <!-- Contenitore principale fluido a tutta larghezza su mobile -->
+  <div id="app" class="max-w-lg mx-auto min-h-screen bg-white border-x border-slate-200 flex flex-col pb-16">
+
+    <!-- HEADER SUPERIORE FLUIDO -->
+    <header class="sticky top-0 z-30 bg-gradient-to-r from-sky-500 to-emerald-500 text-white px-4 py-3 flex items-center justify-between border-b border-sky-600/20">
+      <div class="flex items-center gap-2.5">
+        <span class="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center font-extrabold text-sm tracking-tight">A</span>
+        <div>
+          <h1 class="text-base font-extrabold tracking-tight leading-none">Alimentario</h1>
+          <p class="text-[11px] text-sky-50/90 font-medium mt-0.5">Dispensa fluida & idee pasto</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <button onclick="openHelpModal()" title="Installa su telefono" class="px-2.5 py-1.5 rounded-md bg-white/15 hover:bg-white/25 text-xs font-semibold flex items-center gap-1 transition">
+          <i class="ph-bold ph-device-mobile text-sm"></i>
+          <span>Installa</span>
+        </button>
+        <button onclick="switchTab('dieta')" title="Condividi o Esporta" class="p-1.5 rounded-md bg-white/15 hover:bg-white/25 transition">
+          <i class="ph-bold ph-export text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- AREA PRINCIPALE CONTINUA -->
+    <main id="main-content" class="flex-1 flex flex-col">
+      <!-- Popolato dinamicamente -->
+    </main>
+
+    <!-- BARRA DI NAVIGAZIONE INFERIORE CONTINUA (4 TAB) -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-40 bg-white border-t border-slate-200 grid grid-cols-4 h-14">
+      <button onclick="switchTab('dispensa')" data-tab="dispensa" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-list-bullets text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Dispensa</span>
+      </button>
+      <button onclick="switchTab('componi')" data-tab="componi" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-fork-knife text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Componi</span>
+      </button>
+      <button onclick="switchTab('idee')" data-tab="idee" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-sparkle text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Idee Pasto</span>
+      </button>
+      <button onclick="switchTab('dieta')" data-tab="dieta" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-sliders-horizontal text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">La Mia Dieta</span>
+      </button>
+    </nav>
+
+    <!-- NOTIFICHE TOAST SOBRIE -->
+    <div id="toast-container" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-[92%] max-w-md flex flex-col items-center gap-1.5"></div>
+
+    <!-- MODALE LINEARE -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/45 z-50 hidden items-end sm:items-center justify-center">
+      <div id="modal-box" class="bg-white w-full max-w-lg rounded-t-xl sm:rounded-xl border border-slate-200 p-4 shadow-xl max-h-[90vh] overflow-y-auto animate-fade">
+        <!-- Contenuto dinamico -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. CONFIGURAZIONE MACRONUTRIENTI E DATI DI PARTENZA
+     *************************************************************************/
+    const STORAGE_KEY = 'alimentario_v1';
+    const MACRO_ORDER = ['carb', 'prot', 'veg', 'fat'];
+
+    const MACROS = {
+      carb: {
+        id: 'carb',
+        label: 'Carboidrati',
+        short: 'Carb',
+        barColor: 'bg-macro-carb',
+        borderLeft: 'border-l-4 border-l-macro-carb',
+        tintBg: 'bg-macro-carbTint',
+        textColor: 'text-macro-carb',
+        badgeClass: 'bg-orange-100 text-orange-800',
+        activePill: 'bg-macro-carb text-white border-macro-carb'
+      },
+      prot: {
+        id: 'prot',
+        label: 'Proteine',
+        short: 'Prot',
+        barColor: 'bg-macro-prot',
+        borderLeft: 'border-l-4 border-l-macro-prot',
+        tintBg: 'bg-macro-protTint',
+        textColor: 'text-macro-prot',
+        badgeClass: 'bg-rose-100 text-rose-800',
+        activePill: 'bg-macro-prot text-white border-macro-prot'
+      },
+      veg: {
+        id: 'veg',
+        label: 'Verdure',
+        short: 'Verd',
+        barColor: 'bg-macro-veg',
+        borderLeft: 'border-l-4 border-l-macro-veg',
+        tintBg: 'bg-macro-vegTint',
+        textColor: 'text-macro-veg',
+        badgeClass: 'bg-emerald-100 text-emerald-800',
+        activePill: 'bg-macro-veg text-white border-macro-veg'
+      },
+      fat: {
+        id: 'fat',
+        label: 'Grassi / Condimenti',
+        short: 'Grassi',
+        barColor: 'bg-macro-fat',
+        borderLeft: 'border-l-4 border-l-macro-fat',
+        tintBg: 'bg-macro-fatTint',
+        textColor: 'text-macro-fat',
+        badgeClass: 'bg-violet-100 text-violet-800',
+        activePill: 'bg-macro-fat text-white border-macro-fat'
+      }
+    };
+
+    const LOCATIONS = ['Frigo', 'Freezer', 'Dispensa'];
+
+    function getRelativeDate(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      return d.toISOString().split('T')[0];
+    }
+
+    const DEFAULT_ITEMS = [
+      { id: '1', name: 'Pane integrale (porzionato)', macro: 'carb', location: 'Freezer', qty: 500, initialQty: 500, portion: 50, unit: 'g', expiry: getRelativeDate(45) },
+      { id: '2', name: 'Penne rigate', macro: 'carb', location: 'Dispensa', qty: 500, initialQty: 500, portion: 80, unit: 'g', expiry: '' },
+      { id: '3', name: 'Riso Basmati', macro: 'carb', location: 'Dispensa', qty: 1000, initialQty: 1000, portion: 80, unit: 'g', expiry: '' },
+      { id: '4', name: 'Petto di pollo', macro: 'prot', location: 'Frigo', qty: 450, initialQty: 450, portion: 150, unit: 'g', expiry: getRelativeDate(2) },
+      { id: '5', name: 'Uova (6 pz)', macro: 'prot', location: 'Frigo', qty: 360, initialQty: 360, portion: 120, unit: 'g', expiry: getRelativeDate(10) },
+      { id: '6', name: 'Salmone surgelato', macro: 'prot', location: 'Freezer', qty: 300, initialQty: 300, portion: 150, unit: 'g', expiry: getRelativeDate(60) },
+      { id: '7', name: 'Ceci cotti', macro: 'prot', location: 'Dispensa', qty: 400, initialQty: 400, portion: 150, unit: 'g', expiry: '' },
+      { id: '8', name: 'Zucchine fresche', macro: 'veg', location: 'Frigo', qty: 600, initialQty: 600, portion: 200, unit: 'g', expiry: getRelativeDate(4) },
+      { id: '9', name: 'Spinaci surgelati', macro: 'veg', location: 'Freezer', qty: 450, initialQty: 450, portion: 150, unit: 'g', expiry: getRelativeDate(90) },
+      { id: '10', name: 'Olio EVO', macro: 'fat', location: 'Dispensa', qty: 750, initialQty: 750, portion: 10, unit: 'ml', expiry: '' },
+      { id: '11', name: 'Mandorle sgusciate', macro: 'fat', location: 'Dispensa', qty: 200, initialQty: 200, portion: 15, unit: 'g', expiry: '' }
+    ];
+
+    const DEFAULT_TEMPLATES = [
+      {
+        id: 'tpl-pranzo',
+        name: 'Pranzo Bilanciato',
+        slots: [
+          { id: 's1', macro: 'carb', fixedGrams: 80 },
+          { id: 's2', macro: 'prot', fixedGrams: 150 },
+          { id: 's3', macro: 'veg', fixedGrams: 200 },
+          { id: 's4', macro: 'fat', fixedGrams: 10 }
+        ]
+      },
+      {
+        id: 'tpl-cena',
+        name: 'Cena Leggera',
+        slots: [
+          { id: 'c1', macro: 'prot', fixedGrams: 150 },
+          { id: 'c2', macro: 'carb', fixedGrams: 50 },
+          { id: 'c3', macro: 'veg', fixedGrams: 200 },
+          { id: 'c4', macro: 'fat', fixedGrams: 10 }
+        ]
+      }
+    ];
+
+    /*************************************************************************
+     * 2. STATO APPLICATIVO
+     *************************************************************************/
+    let state = {
+      activeTab: 'dispensa',
+      items: [],
+      templates: [],
+      // Filtri Dispensa
+      searchQuery: '',
+      filterLocation: 'Tutti',
+      filterMacro: 'Tutti',
+      groupByMacro: true, // true = Raggruppati (Carb -> Prot -> Verd -> Grassi), false = Elenco unico
+      // Tab Componi
+      composeTemplateId: 'tpl-pranzo',
+      composedSelection: {}, // { slotId: { itemId, grams } }
+      // Tab Idee Pasto
+      genTemplateId: 'tpl-pranzo',
+      genMode: 'random', // 'random' | 'craving'
+      cravingItemId: '',
+      cravingLocation: '',
+      prioritizeExpiry: true,
+      generatedMeal: []
+    };
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('dispensasmart_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state.items = Array.isArray(parsed.items) ? parsed.items : DEFAULT_ITEMS;
+          state.templates = Array.isArray(parsed.templates) && parsed.templates.length > 0 ? parsed.templates : DEFAULT_TEMPLATES;
+        } else {
+          state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+          state.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+          saveState();
+        }
+      } catch (e) {
+        state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+        state.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          items: state.items,
+          templates: state.templates
+        }));
+      } catch (e) {
+        showToast('Errore salvataggio locale', 'error');
+      }
+    }
+
+    /*************************************************************************
+     * 3. HELPER E NAVIGAZIONE
+     *************************************************************************/
+    function getExpiryInfo(expiryStr) {
+      if (!expiryStr) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const exp = new Date(expiryStr);
+      exp.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return { label: 'Scaduto', urgent: true, cls: 'text-rose-600 font-bold', days: diffDays };
+      if (diffDays === 0) return { label: 'Scade oggi', urgent: true, cls: 'text-rose-600 font-bold', days: 0 };
+      if (diffDays <= 3) return { label: `Scade tra ${diffDays}g`, urgent: true, cls: 'text-amber-600 font-bold', days: diffDays };
+      return { label: `Scad. ${new Date(expiryStr).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`, urgent: false, cls: 'text-slate-400', days: diffDays };
+    }
+
+    function formatPortions(qty, portion) {
+      if (!portion || portion <= 0 || qty <= 0) return '0 porz.';
+      const count = qty / portion;
+      const clean = Number.isInteger(count) ? count : count.toFixed(1).replace('.0', '');
+      return `${clean} porz.`;
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-600' : type === 'info' ? 'bg-slate-800' : 'bg-emerald-600';
+      el.className = `${bg} text-white text-xs font-semibold px-3.5 py-2 rounded-md shadow-md flex items-center gap-2 animate-fade`;
+      el.innerHTML = `<i class="ph-bold ${type === 'error' ? 'ph-warning-circle' : 'ph-check'}"></i><span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.2s';
+        setTimeout(() => el.remove(), 200);
+      }, 2200);
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.tab === tabName;
+        btn.className = `nav-btn flex flex-col items-center justify-center border-t-2 transition ${
+          active ? 'border-sky-500 text-sky-600 bg-sky-50/40' : 'border-transparent text-slate-400 hover:text-slate-700'
+        }`;
+      });
+      render();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    /*************************************************************************
+     * 4. OPERAZIONI INVENTARIO
+     *************************************************************************/
+    function consumePortion(id) {
+      const item = state.items.find(i => i.id === id);
+      if (!item || item.qty <= 0) return;
+      const used = Math.min(item.qty, item.portion);
+      item.qty = Math.max(0, Math.round((item.qty - used) * 10) / 10);
+      saveState();
+      render();
+      showToast(`Scalati -${used}${item.unit} di ${item.name}`);
+    }
+
+    function restockItem(id, amount) {
+      const item = state.items.find(i => i.id === id);
+      if (!item || amount <= 0) return;
+      item.qty = Math.round((item.qty + amount) * 10) / 10;
+      if (item.qty > item.initialQty) item.initialQty = item.qty;
+      saveState();
+      render();
+      showToast(`Aggiunti +${amount}${item.unit} a ${item.name}`);
+    }
+
+    function deductCustomGrams(id, grams) {
+      const item = state.items.find(i => i.id === id);
+      if (!item || grams <= 0) return;
+      const used = Math.min(item.qty, grams);
+      item.qty = Math.max(0, Math.round((item.qty - used) * 10) / 10);
+      saveState();
+      closeModal();
+      render();
+      showToast(`Scalati -${used}${item.unit} di ${item.name}`);
+    }
+
+    function deleteItem(id) {
+      state.items = state.items.filter(i => i.id !== id);
+      saveState();
+      closeModal();
+      render();
+      showToast('Alimento eliminato', 'info');
+    }
+
+    /*************************************************************************
+     * 5. TAB 1: DISPENSA (Layout Continuo Lineare senza Riquadri Separati)
+     *************************************************************************/
+    function sortItems(list) {
+      return [...list].sort((a, b) => {
+        if ((a.qty > 0) !== (b.qty > 0)) return a.qty > 0 ? -1 : 1;
+        const expA = getExpiryInfo(a.expiry);
+        const expB = getExpiryInfo(b.expiry);
+        if (expA && expB) return expA.days - expB.days;
+        if (expA) return -1;
+        if (expB) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function renderInventoryRow(item) {
+      const m = MACROS[item.macro];
+      const exp = getExpiryInfo(item.expiry);
+      const isOut = item.qty <= 0;
+      const pct = item.initialQty > 0 ? Math.min(100, Math.round((item.qty / item.initialQty) * 100)) : 0;
+
+      return `
+        <div class="relative flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border-b border-slate-200 ${m.borderLeft} ${isOut ? 'opacity-50 bg-slate-50' : 'hover:bg-slate-50/80'} transition">
+          <!-- Info alimento cliccabili per modifica -->
+          <div onclick="openItemModal('${item.id}')" class="min-w-0 flex-1 cursor-pointer">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-sm text-slate-900 truncate">${item.name}</span>
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">${item.location}</span>
+              ${!state.groupByMacro ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${m.badgeClass} shrink-0">${m.short}</span>` : ''}
+            </div>
+
+            <div class="flex items-center gap-2 mt-1 text-xs">
+              <span class="font-extrabold ${isOut ? 'text-rose-600' : 'text-slate-800'}">${item.qty}${item.unit}</span>
+              <span class="text-slate-300">|</span>
+              <span class="font-semibold text-slate-600">${formatPortions(item.qty, item.portion)}</span>
+              <span class="text-[11px] text-slate-400">(da ${item.portion}${item.unit})</span>
+              ${exp ? `<span class="text-[11px] ${exp.cls}">• ${exp.label}</span>` : ''}
+            </div>
+
+            <!-- Sottile barra livello scorta -->
+            <div class="w-32 h-1 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+              <div class="h-full ${isOut ? 'bg-slate-300' : m.barColor}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+
+          <!-- Azioni rapide compatte a destra -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="consumePortion('${item.id}')" ${isOut ? 'disabled' : ''} title="Scala 1 porzione" class="px-2.5 py-1.5 rounded-md text-xs font-bold transition ${
+              isOut
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95'
+            }">
+              -${item.portion}${item.unit}
+            </button>
+            <button onclick="openQuickAdjustModal('${item.id}')" title="Spesa o grammi liberi" class="w-8 h-8 rounded-md border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center active:scale-95">
+              <i class="ph-bold ph-plus-minus text-sm"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDispensa() {
+      const filtered = state.items.filter(item => {
+        const matchSearch = item.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+        const matchLoc = state.filterLocation === 'Tutti' || item.location === state.filterLocation;
+        const matchMacro = state.filterMacro === 'Tutti' || item.macro === state.filterMacro;
+        return matchSearch && matchLoc && matchMacro;
+      });
+
+      const availableCount = state.items.filter(i => i.qty > 0).length;
+      const expiringCount = state.items.filter(i => i.qty > 0 && getExpiryInfo(i.expiry)?.urgent).length;
+
+      let html = `
+        <!-- FASCIA CONTROLLO CONTINUA IN ALTO -->
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 space-y-2">
+          <!-- Riga 1: Contatori sintetici + Bottone Aggiungi -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-xs text-slate-600">
+              <span><strong class="text-slate-900">${availableCount}</strong> in casa</span>
+              <span class="text-slate-300">•</span>
+              <span class="${expiringCount > 0 ? 'text-amber-600 font-bold' : ''}"><strong>${expiringCount}</strong> in scadenza</span>
+            </div>
+            <button onclick="openItemModal()" class="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 active:scale-95 transition">
+              <i class="ph-bold ph-plus"></i>
+              <span>Aggiungi alimento</span>
+            </button>
+          </div>
+
+          <!-- Riga 2: Ricerca + Switch Vista Raggruppata / Unica -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input type="text" value="${state.searchQuery}" oninput="state.searchQuery=this.value; render();" placeholder="Filtra alimento..." class="w-full bg-white border border-slate-200 rounded-md pl-8 pr-2.5 py-1.5 text-xs focus:outline-none focus:border-sky-500" />
+            </div>
+
+            <div class="flex border border-slate-200 rounded-md overflow-hidden bg-white shrink-0">
+              <button onclick="state.groupByMacro=true; render();" class="px-2.5 py-1.5 text-[11px] font-bold transition ${
+                state.groupByMacro ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-50'
+              }">Raggruppati</button>
+              <button onclick="state.groupByMacro=false; render();" class="px-2.5 py-1.5 text-[11px] font-bold border-l border-slate-200 transition ${
+                !state.groupByMacro ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-50'
+              }">Elenco unico</button>
+            </div>
+          </div>
+
+          <!-- Riga 3: Filtri Luogo e Macro compatti -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            ${['Tutti', ...LOCATIONS].map(loc => `
+              <button onclick="state.filterLocation='${loc}'; render();" class="px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap border transition ${
+                state.filterLocation === loc ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'
+              }">${loc}</button>
+            `).join('')}
+            <span class="text-slate-300 px-0.5">|</span>
+            <button onclick="state.filterMacro='Tutti'; render();" class="px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap border transition ${
+              state.filterMacro === 'Tutti' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-600 border-slate-200'
+            }">Tutti i macro</button>
+            ${MACRO_ORDER.map(k => {
+              const m = MACROS[k];
+              return `<button onclick="state.filterMacro='${m.id}'; render();" class="px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap border transition ${
+                state.filterMacro === m.id ? m.activePill : 'bg-white text-slate-600 border-slate-200'
+              }">${m.short}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      if (filtered.length === 0) {
+        html += `
+          <div class="py-12 px-4 text-center text-slate-500">
+            <p class="text-sm font-bold text-slate-700">Nessun alimento trovato</p>
+            <p class="text-xs mt-1">Modifica i filtri oppure tocca <strong>+ Aggiungi alimento</strong> in alto.</p>
+          </div>
+        `;
+        return html;
+      }
+
+      if (state.groupByMacro) {
+        // FLUSSO CONTINUO CON INTESTAZIONI PIENE PER MACRO (Carb -> Prot -> Verd -> Grassi)
+        html += `<div class="divide-y divide-slate-200">`;
+        MACRO_ORDER.forEach(macroKey => {
+          const groupItems = sortItems(filtered.filter(i => i.macro === macroKey));
+          if (groupItems.length === 0) return;
+
+          const m = MACROS[macroKey];
+          html += `
+            <div>
+              <div class="${m.tintBg} border-b border-slate-200 px-3.5 py-1.5 flex items-center justify-between ${m.borderLeft}">
+                <span class="text-xs font-extrabold uppercase tracking-wider ${m.textColor}">${m.label}</span>
+                <span class="text-[11px] font-bold text-slate-500">${groupItems.length}</span>
+              </div>
+              <div>
+                ${groupItems.map(item => renderInventoryRow(item)).join('')}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      } else {
+        // LISTA UNICA CONTINUA
+        const allSorted = sortItems(filtered);
+        html += `<div>${allSorted.map(item => renderInventoryRow(item)).join('')}</div>`;
+      }
+
+      return html;
+    }
+
+    /*************************************************************************
+     * 6. TAB 2: COMPONI (Abbinamento Manuale Fluido)
+     *************************************************************************/
+    function renderComponi() {
+      const tpl = state.templates.find(t => t.id === state.composeTemplateId) || state.templates[0];
+      if (!tpl) return `<p class="p-4 text-xs text-slate-500">Crea prima una struttura pasto nella scheda La Mia Dieta.</p>`;
+
+      const selectedEntries = Object.entries(state.composedSelection)
+        .map(([slotId, sel]) => {
+          const item = state.items.find(i => i.id === sel.itemId);
+          return item ? { slotId, item, grams: sel.grams } : null;
+        })
+        .filter(Boolean);
+
+      let html = `
+        <!-- FASCIA RIEPILOGO PIATTO CONTINUA IN ALTO -->
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-3 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-extrabold text-slate-900">Componi il tuo piatto</h2>
+              <p class="text-[11px] text-slate-500">Seleziona un alimento per categoria</p>
+            </div>
+            <select onchange="state.composeTemplateId=this.value; state.composedSelection={}; render();" class="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-bold text-slate-800">
+              ${state.templates.map(t => `<option value="${t.id}" ${t.id === tpl.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+            </select>
+          </div>
+
+          ${selectedEntries.length === 0 ? `
+            <div class="py-2.5 px-3 bg-white border border-dashed border-slate-300 rounded-md text-xs text-slate-500">
+              Nessun ingrediente selezionato. Tocca le righe qui sotto per comporre il pasto.
+            </div>
+          ` : `
+            <div class="bg-white border border-slate-200 rounded-md divide-y divide-slate-100">
+              ${selectedEntries.map(({ slotId, item, grams }) => {
+                const m = MACROS[item.macro];
+                return `
+                  <div class="flex items-center justify-between px-3 py-2 ${m.borderLeft}">
+                    <div class="min-w-0 pr-2">
+                      <span class="text-xs font-bold text-slate-900 truncate block">${item.name}</span>
+                      <span class="text-[10px] font-semibold ${m.textColor}">${m.short} • Disp: ${item.qty}${item.unit}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button onclick="adjustComposedGrams('${slotId}', -10)" class="w-6 h-6 rounded border border-slate-200 text-xs font-bold hover:bg-slate-100">-</button>
+                      <span class="text-xs font-extrabold w-12 text-center">${grams}${item.unit}</span>
+                      <button onclick="adjustComposedGrams('${slotId}', 10)" class="w-6 h-6 rounded border border-slate-200 text-xs font-bold hover:bg-slate-100">+</button>
+                      <button onclick="delete state.composedSelection['${slotId}']; render();" class="ml-1 text-slate-400 hover:text-rose-600 p-1">
+                        <i class="ph-bold ph-x text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="confirmComposedMeal()" class="flex-1 py-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-98 transition">
+                <i class="ph-bold ph-check"></i>
+                <span>Ho cucinato questo piatto (Scala tutto)</span>
+              </button>
+              <button onclick="state.composedSelection={}; render();" class="px-3 py-2.5 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600">
+                Reset
+              </button>
+            </div>
+          `}
+        </div>
+
+        <!-- LISTA CONTINUA DEGLI ALIMENTI DISPONIBILI PER SLOT -->
+        <div>
+          ${tpl.slots.map(slot => {
+            const m = MACROS[slot.macro];
+            const items = state.items.filter(i => i.macro === slot.macro && i.qty > 0);
+            const currentSel = state.composedSelection[slot.id];
+
+            return `
+              <div>
+                <div class="${m.tintBg} border-b border-slate-200 px-3.5 py-1.5 flex items-center justify-between ${m.borderLeft}">
+                  <span class="text-xs font-extrabold uppercase tracking-wider ${m.textColor}">${m.label}</span>
+                  <span class="text-[11px] font-bold text-slate-600">${slot.fixedGrams ? `Target dieta: ${slot.fixedGrams}g` : 'Porzione standard'}</span>
+                </div>
+
+                ${items.length === 0 ? `
+                  <div class="px-3.5 py-3 text-xs text-slate-400 border-b border-slate-200">Nessun alimento disponibile in casa.</div>
+                ` : `
+                  <div>
+                    ${items.map(item => {
+                      const isSelected = currentSel && currentSel.itemId === item.id;
+                      const targetGrams = slot.fixedGrams || item.portion;
+                      return `
+                        <button onclick="toggleComposeItem('${slot.id}', '${item.id}', ${targetGrams})" class="w-full text-left px-3.5 py-2.5 border-b border-slate-200 flex items-center justify-between transition ${
+                          isSelected ? 'bg-sky-50/90' : 'bg-white hover:bg-slate-50'
+                        }">
+                          <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 ${
+                              isSelected ? 'bg-sky-600 border-sky-600 text-white' : 'border-slate-300 bg-white'
+                            }">
+                              ${isSelected ? '<i class="ph-bold ph-check text-[10px]"></i>' : ''}
+                            </span>
+                            <div class="min-w-0">
+                              <div class="text-sm font-bold text-slate-900 truncate">${item.name}</div>
+                              <div class="text-[11px] text-slate-500">${item.location} • Disponibili: ${item.qty}${item.unit}</div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-extrabold text-slate-700 shrink-0 ml-2">
+                            ${Math.min(item.qty, targetGrams)}${item.unit}
+                          </span>
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                `}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      return html;
+    }
+
+    function toggleComposeItem(slotId, itemId, defaultGrams) {
+      if (state.composedSelection[slotId]?.itemId === itemId) {
+        delete state.composedSelection[slotId];
+      } else {
+        const item = state.items.find(i => i.id === itemId);
+        const safeGrams = item ? Math.min(item.qty, defaultGrams) : defaultGrams;
+        state.composedSelection[slotId] = { itemId, grams: safeGrams };
+      }
+      render();
+    }
+
+    function adjustComposedGrams(slotId, delta) {
+      const sel = state.composedSelection[slotId];
+      if (!sel) return;
+      const item = state.items.find(i => i.id === sel.itemId);
+      if (!item) return;
+      sel.grams = Math.max(5, Math.min(item.qty, sel.grams + delta));
+      render();
+    }
+
+    function confirmComposedMeal() {
+      const entries = Object.values(state.composedSelection);
+      if (entries.length === 0) return;
+
+      entries.forEach(({ itemId, grams }) => {
+        const item = state.items.find(i => i.id === itemId);
+        if (item) item.qty = Math.max(0, Math.round((item.qty - grams) * 10) / 10);
+      });
+
+      state.composedSelection = {};
+      saveState();
+      render();
+      showToast('Piatto registrato e scorte scalate!');
+    }
+
+    /*************************************************************************
+     * 7. TAB 3: IDEE PASTO (Generatore Casuale o su Preferenza)
+     *************************************************************************/
+    function generateMealPlan(keepLocked = false) {
+      const tpl = state.templates.find(t => t.id === state.genTemplateId) || state.templates[0];
+      if (!tpl) return;
+
+      const availableItems = state.items.filter(i => i.qty > 0);
+      const cravingItem = state.genMode === 'craving' && state.cravingItemId
+        ? availableItems.find(i => i.id === state.cravingItemId)
+        : null;
+
+      let cravingPlaced = false;
+
+      state.generatedMeal = tpl.slots.map(slot => {
+        if (keepLocked) {
+          const existing = state.generatedMeal.find(g => g.slotId === slot.id);
+          if (existing && existing.locked && existing.itemId) return existing;
+        }
+
+        if (cravingItem && !cravingPlaced && cravingItem.macro === slot.macro) {
+          cravingPlaced = true;
+          return {
+            slotId: slot.id,
+            macro: slot.macro,
+            itemId: cravingItem.id,
+            grams: Math.min(cravingItem.qty, slot.fixedGrams || cravingItem.portion),
+            locked: true
+          };
+        }
+
+        let candidates = availableItems.filter(i => i.macro === slot.macro);
+        if (state.genMode === 'craving' && state.cravingLocation) {
+          const locFiltered = candidates.filter(i => i.location === state.cravingLocation);
+          if (locFiltered.length > 0) candidates = locFiltered;
+        }
+
+        if (candidates.length === 0) {
+          return { slotId: slot.id, macro: slot.macro, itemId: null, grams: 0, locked: false };
+        }
+
+        let pool = [];
+        candidates.forEach(c => {
+          const urgent = state.prioritizeExpiry && getExpiryInfo(c.expiry)?.urgent;
+          const weight = urgent ? 3 : 1;
+          for (let k = 0; k < weight; k++) pool.push(c);
+        });
+
+        const chosen = pool[Math.floor(Math.random() * pool.length)];
+        return {
+          slotId: slot.id,
+          macro: slot.macro,
+          itemId: chosen.id,
+          grams: Math.min(chosen.qty, slot.fixedGrams || chosen.portion),
+          locked: false
+        };
+      });
+
+      render();
+    }
+
+    function rerollSingleSlot(slotId) {
+      const current = state.generatedMeal.find(g => g.slotId === slotId);
+      if (!current) return;
+      const tpl = state.templates.find(t => t.id === state.genTemplateId) || state.templates[0];
+      const slot = tpl.slots.find(s => s.id === slotId);
+
+      const candidates = state.items.filter(i => i.qty > 0 && i.macro === current.macro);
+      if (candidates.length === 0) return;
+
+      const alternatives = candidates.length > 1 ? candidates.filter(c => c.id !== current.itemId) : candidates;
+      const chosen = alternatives[Math.floor(Math.random() * alternatives.length)];
+      current.itemId = chosen.id;
+      current.grams = Math.min(chosen.qty, slot?.fixedGrams || chosen.portion);
+      render();
+    }
+
+    function toggleLockSlot(slotId) {
+      const target = state.generatedMeal.find(g => g.slotId === slotId);
+      if (target) {
+        target.locked = !target.locked;
+        render();
+      }
+    }
+
+    function cookGeneratedMeal() {
+      const valid = state.generatedMeal.filter(g => g.itemId && g.grams > 0);
+      if (valid.length === 0) return;
+
+      valid.forEach(g => {
+        const item = state.items.find(i => i.id === g.itemId);
+        if (item) item.qty = Math.max(0, Math.round((item.qty - g.grams) * 10) / 10);
+      });
+
+      saveState();
+      state.generatedMeal = [];
+      render();
+      showToast('Piatto scalato dall\'inventario!');
+    }
+
+    function renderIdee() {
+      const tpl = state.templates.find(t => t.id === state.genTemplateId) || state.templates[0];
+      const availableItems = state.items.filter(i => i.qty > 0);
+
+      let html = `
+        <!-- PARAMETRI GENERATORE IN FASCIA SUPERIORE -->
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-3 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-extrabold text-slate-900">Generatore Idee Pasto</h2>
+              <p class="text-[11px] text-slate-500">Abbina le scorte reali secondo la tua dieta</p>
+            </div>
+            <select onchange="state.genTemplateId=this.value; state.generatedMeal=[]; render();" class="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-bold text-slate-800">
+              ${state.templates.map(t => `<option value="${t.id}" ${t.id === tpl.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 border border-slate-200 rounded-md overflow-hidden bg-white">
+            <button onclick="state.genMode='random'; render();" class="py-2 text-xs font-bold transition ${
+              state.genMode === 'random' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'
+            }">Sorprendimi (Casuale)</button>
+            <button onclick="state.genMode='craving'; render();" class="py-2 text-xs font-bold border-l border-slate-200 transition ${
+              state.genMode === 'craving' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'
+            }">Ho voglia di...</button>
+          </div>
+
+          ${state.genMode === 'craving' ? `
+            <div class="space-y-2 pt-1 animate-fade">
+              <select onchange="state.cravingItemId=this.value; render();" class="w-full bg-white border border-slate-200 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-800">
+                <option value="">Scegli un alimento specifico da includere...</option>
+                ${availableItems.map(i => `
+                  <option value="${i.id}" ${state.cravingItemId === i.id ? 'selected' : ''}>
+                    ${i.name} (${MACROS[i.macro].short} • ${i.qty}${i.unit})
+                  </option>
+                `).join('')}
+              </select>
+              <select onchange="state.cravingLocation=this.value; render();" class="w-full bg-white border border-slate-200 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-800">
+                <option value="">Qualsiasi luogo (Frigo, Freezer, Dispensa)</option>
+                ${LOCATIONS.map(loc => `<option value="${loc}" ${state.cravingLocation === loc ? 'selected' : ''}>Priorità: ${loc}</option>`).join('')}
+              </select>
+            </div>
+          ` : ''}
+
+          <div class="flex items-center justify-between pt-0.5">
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" ${state.prioritizeExpiry ? 'checked' : ''} onchange="state.prioritizeExpiry=this.checked;" class="accent-sky-600" />
+              <span>Priorità ai cibi in scadenza</span>
+            </label>
+            <button onclick="generateMealPlan(false)" class="px-4 py-2 rounded-md bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition">
+              <i class="ph-bold ph-sparkle"></i>
+              <span>${state.generatedMeal.length > 0 ? 'Rigenera' : 'Genera Piatto'}</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (state.generatedMeal.length > 0) {
+        html += `
+          <div class="animate-fade">
+            <div class="bg-sky-50/70 border-b border-slate-200 px-3.5 py-2 flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-sky-800">Proposta ${tpl.name}</span>
+              <button onclick="generateMealPlan(true)" class="text-xs font-bold text-sky-700 hover:underline flex items-center gap-1">
+                <i class="ph-bold ph-arrows-clockwise"></i> Cambia non bloccati
+              </button>
+            </div>
+
+            <div class="divide-y divide-slate-200">
+              ${state.generatedMeal.map(g => {
+                const m = MACROS[g.macro];
+                const item = g.itemId ? state.items.find(i => i.id === g.itemId) : null;
+
+                if (!item) {
+                  return `
+                    <div class="px-3.5 py-3 flex items-center justify-between ${m.borderLeft} bg-slate-50">
+                      <span class="text-xs font-semibold text-slate-500">Nessun alimento disponibile per ${m.label}</span>
+                    </div>
+                  `;
+                }
+
+                return `
+                  <div class="px-3.5 py-3 flex items-center justify-between gap-2 ${m.borderLeft} ${g.locked ? 'bg-slate-50' : 'bg-white'}">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-extrabold uppercase ${m.textColor}">${m.short}</span>
+                        <span class="text-slate-300">•</span>
+                        <span class="text-[11px] text-slate-500">${item.location}</span>
+                      </div>
+                      <div class="text-sm font-bold text-slate-900 truncate mt-0.5">${item.name}</div>
+                      <div class="text-xs font-extrabold text-slate-800 mt-0.5">
+                        Quantità: ${g.grams}${item.unit} <span class="font-normal text-slate-400">(su ${item.qty}${item.unit} disp.)</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button onclick="toggleLockSlot('${g.slotId}')" title="${g.locked ? 'Sblocca' : 'Blocca'}" class="w-8 h-8 rounded-md border flex items-center justify-center transition ${
+                        g.locked ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }">
+                        <i class="ph-bold ${g.locked ? 'ph-lock-key' : 'ph-lock-key-open'} text-sm"></i>
+                      </button>
+                      <button onclick="rerollSingleSlot('${g.slotId}')" title="Cambia solo questo" class="w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-dice-five text-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border-b border-slate-200">
+              <button onclick="cookGeneratedMeal()" class="w-full py-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-98 transition">
+                <i class="ph-bold ph-check"></i>
+                <span>Ho cucinato questo piatto (Scala scorte)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return html;
+    }
+
+    /*************************************************************************
+     * 8. TAB 4: LA MIA DIETA & CONDIVISIONE
+     *************************************************************************/
+    function renderDieta() {
+      return `
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-extrabold text-slate-900">Struttura Pasti & Regole</h2>
+            <p class="text-[11px] text-slate-500">Imposta gli schemi della tua nutrizionista</p>
+          </div>
+          <button onclick="openTemplateModal()" class="px-3 py-1.5 rounded-md bg-sky-600 text-white text-xs font-bold flex items-center gap-1">
+            <i class="ph-bold ph-plus"></i> Nuovo Pasto
+          </button>
+        </div>
+
+        <div class="divide-y divide-slate-200 border-b border-slate-200">
+          ${state.templates.map(tpl => `
+            <div class="px-3.5 py-3 bg-white space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="font-extrabold text-sm text-slate-900">${tpl.name}</h3>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="openTemplateModal('${tpl.id}')" class="px-2.5 py-1 rounded border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                    Modifica
+                  </button>
+                  ${state.templates.length > 1 ? `
+                    <button onclick="deleteTemplate('${tpl.id}')" class="p-1.5 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">
+                      <i class="ph-bold ph-trash text-xs"></i>
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-1.5">
+                ${tpl.slots.map(s => {
+                  const m = MACROS[s.macro];
+                  return `<span class="px-2 py-0.5 rounded text-[11px] font-bold ${m.badgeClass}">${m.short}: ${s.fixedGrams ? `${s.fixedGrams}g` : 'porz. alimento'}</span>`;
+                }).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- SEZIONE CONDIVISIONE & GESTIONE DATI -->
+        <div class="px-3.5 py-4 space-y-3">
+          <div>
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Condivisione & Backup</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Esporta la configurazione per condividerla con un amico o salvarla.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openExportModal('all')" class="py-2.5 px-3 rounded-md bg-slate-900 text-white text-xs font-bold text-center">
+              Esporta Tutto (Dispensa + Dieta)
+            </button>
+            <button onclick="openExportModal('diet')" class="py-2.5 px-3 rounded-md border border-slate-300 bg-white text-slate-800 text-xs font-bold text-center">
+              Condividi solo Dieta
+            </button>
+          </div>
+
+          <button onclick="openImportModal()" class="w-full py-2.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold">
+            Importa da Codice JSON
+          </button>
+
+          <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+            <button onclick="clearInventoryOnly()" class="font-semibold text-rose-600 hover:underline">
+              Svuota alimenti (parti da zero)
+            </button>
+            <button onclick="resetToDemoData()" class="font-semibold text-slate-500 hover:underline">
+              Ripristina dati d'esempio
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function deleteTemplate(id) {
+      state.templates = state.templates.filter(t => t.id !== id);
+      if (state.composeTemplateId === id) state.composeTemplateId = state.templates[0]?.id || '';
+      if (state.genTemplateId === id) state.genTemplateId = state.templates[0]?.id || '';
+      saveState();
+      render();
+      showToast('Schema pasto rimosso', 'info');
+    }
+
+    function clearInventoryOnly() {
+      state.items = [];
+      saveState();
+      render();
+      showToast('Dispensa svuotata!', 'info');
+    }
+
+    function resetToDemoData() {
+      state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+      state.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+      saveState();
+      render();
+      showToast('Dati d\'esempio ripristinati');
+    }
+
+    /*************************************************************************
+     * 9. MODALI LINEARI
+     *************************************************************************/
+    function openModal(html) {
+      const backdrop = document.getElementById('modal-backdrop');
+      document.getElementById('modal-box').innerHTML = html;
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    function closeModal() {
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+    }
+
+    document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-backdrop') closeModal();
+    });
+
+    function openItemModal(editId = null) {
+      const item = editId ? state.items.find(i => i.id === editId) : null;
+      const selectedMacro = item ? item.macro : 'carb';
+      const selectedLoc = item ? item.location : 'Dispensa';
+
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">${item ? 'Modifica Alimento' : 'Nuovo Alimento'}</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <form onsubmit="saveItemForm(event, '${editId || ''}')" class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nome Alimento *</label>
+            <input type="text" id="form-name" required value="${item ? item.name : ''}" placeholder="Es. Pane integrale, Petto di pollo..." class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm font-semibold focus:outline-none focus:border-sky-500" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Macronutriente</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              ${MACRO_ORDER.map(k => {
+                const m = MACROS[k];
+                return `
+                  <label class="cursor-pointer">
+                    <input type="radio" name="form-macro" value="${m.id}" ${selectedMacro === m.id ? 'checked' : ''} class="peer hidden" />
+                    <div class="py-2 px-1 rounded-md border border-slate-200 peer-checked:${m.activePill} text-xs font-bold text-center transition">
+                      ${m.short}
+                    </div>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Conservazione</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              ${LOCATIONS.map(loc => `
+                <label class="cursor-pointer">
+                  <input type="radio" name="form-location" value="${loc}" ${selectedLoc === loc ? 'checked' : ''} class="peer hidden" />
+                  <div class="py-1.5 rounded-md border border-slate-200 peer-checked:bg-slate-800 peer-checked:text-white peer-checked:border-slate-800 text-xs font-bold text-center transition">
+                    ${loc}
+                  </div>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Quantità Tot. *</label>
+              <input type="number" id="form-qty" required min="0" step="any" value="${item ? item.qty : 500}" class="w-full border border-slate-300 rounded-md px-2.5 py-2 text-sm font-bold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">1 Porzione *</label>
+              <input type="number" id="form-portion" required min="1" step="any" value="${item ? item.portion : 50}" class="w-full border border-slate-300 rounded-md px-2.5 py-2 text-sm font-bold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Unità</label>
+              <select id="form-unit" class="w-full border border-slate-300 rounded-md px-2 py-2 text-sm font-bold">
+                <option value="g" ${!item || item.unit === 'g' ? 'selected' : ''}>g</option>
+                <option value="ml" ${item?.unit === 'ml' ? 'selected' : ''}>ml</option>
+                <option value="pz" ${item?.unit === 'pz' ? 'selected' : ''}>pz</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 -mt-1">Es. 500g di pane con porzione da 50g = 10 porzioni scalabili con un clic.</p>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Data di scadenza (opzionale)</label>
+            <input type="date" id="form-expiry" value="${item?.expiry || ''}" class="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm" />
+          </div>
+
+          <div class="pt-2 flex gap-2">
+            ${item ? `<button type="button" onclick="deleteItem('${item.id}')" class="px-3.5 py-2.5 rounded-md border border-rose-200 text-rose-600 font-bold text-xs">Elimina</button>` : ''}
+            <button type="submit" class="flex-1 py-2.5 rounded-md bg-emerald-600 text-white font-bold text-xs">
+              ${item ? 'Salva Modifiche' : 'Salva in Dispensa'}
+            </button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveItemForm(e, editId) {
+      e.preventDefault();
+      const name = document.getElementById('form-name').value.trim();
+      const macro = document.querySelector('input[name="form-macro"]:checked').value;
+      const location = document.querySelector('input[name="form-location"]:checked').value;
+      const qty = parseFloat(document.getElementById('form-qty').value) || 0;
+      const portion = parseFloat(document.getElementById('form-portion').value) || 1;
+      const unit = document.getElementById('form-unit').value;
+      const expiry = document.getElementById('form-expiry').value;
+
+      if (editId) {
+        const idx = state.items.findIndex(i => i.id === editId);
+        if (idx !== -1) {
+          state.items[idx] = {
+            ...state.items[idx],
+            name, macro, location, qty,
+            initialQty: Math.max(state.items[idx].initialQty, qty),
+            portion, unit, expiry
+          };
+        }
+        showToast('Alimento aggiornato');
+      } else {
+        state.items.unshift({
+          id: 'item-' + Date.now(),
+          name, macro, location,
+          qty, initialQty: qty || portion,
+          portion, unit, expiry
+        });
+        showToast(`${name} aggiunto!`);
+      }
+
+      saveState();
+      closeModal();
+      render();
+    }
+
+    function openQuickAdjustModal(id) {
+      const item = state.items.find(i => i.id === id);
+      if (!item) return;
+
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900">${item.name}</h3>
+            <p class="text-xs text-slate-500">Disponibili: <strong>${item.qty}${item.unit}</strong> (${formatPortions(item.qty, item.portion)})</p>
+          </div>
+          <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-md space-y-2">
+            <label class="block text-xs font-bold text-slate-800">Usa quantità personalizzata (${item.unit})</label>
+            <div class="flex gap-2">
+              <input type="number" id="custom-deduct-val" value="${item.portion}" min="1" max="${item.qty}" class="flex-1 bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-sm font-bold" />
+              <button onclick="deductCustomGrams('${item.id}', parseFloat(document.getElementById('custom-deduct-val').value))" class="px-4 py-1.5 rounded-md bg-slate-900 text-white text-xs font-bold">
+                Scala
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-md space-y-2">
+            <label class="block text-xs font-bold text-emerald-900">Ho fatto la spesa (Aggiungi scorte)</label>
+            <div class="flex gap-2">
+              <input type="number" id="custom-add-val" value="${item.initialQty || 500}" min="1" class="flex-1 bg-white border border-emerald-300 rounded-md px-2.5 py-1.5 text-sm font-bold" />
+              <button onclick="restockItem('${item.id}', parseFloat(document.getElementById('custom-add-val').value)); closeModal();" class="px-4 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold">
+                + Aggiungi
+              </button>
+            </div>
+            <div class="flex gap-1.5 pt-1">
+              <button onclick="restockItem('${item.id}', ${item.portion}); closeModal();" class="px-2.5 py-1 rounded bg-white border border-emerald-200 text-emerald-800 text-[11px] font-bold">+1 porzione (${item.portion}${item.unit})</button>
+              <button onclick="restockItem('${item.id}', 500); closeModal();" class="px-2.5 py-1 rounded bg-white border border-emerald-200 text-emerald-800 text-[11px] font-bold">+500${item.unit}</button>
+            </div>
+          </div>
+
+          <button onclick="closeModal(); openItemModal('${item.id}');" class="w-full py-2 rounded-md border border-slate-200 text-slate-700 text-xs font-bold">
+            Modifica dettagli alimento
+          </button>
+        </div>
+      `);
+    }
+
+    let editingSlots = [];
+
+    function openTemplateModal(editId = null) {
+      const tpl = editId ? state.templates.find(t => t.id === editId) : null;
+      editingSlots = tpl
+        ? JSON.parse(JSON.stringify(tpl.slots))
+        : [
+            { id: 's-' + Date.now() + '1', macro: 'carb', fixedGrams: 80 },
+            { id: 's-' + Date.now() + '2', macro: 'prot', fixedGrams: 150 },
+            { id: 's-' + Date.now() + '3', macro: 'veg', fixedGrams: 200 }
+          ];
+      renderTemplateModalContent(tpl);
+    }
+
+    function renderTemplateModalContent(tpl) {
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">${tpl ? 'Modifica Schema Pasto' : 'Nuovo Schema Pasto'}</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="space-y-3">
+          <input type="text" id="tpl-name" value="${tpl ? tpl.name : ''}" placeholder="Nome pasto (es. Pranzo Nutrizionista)" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm font-bold" />
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-bold text-slate-700">Macronutrienti e grammature:</label>
+              <button type="button" onclick="editingSlots.push({ id: 's-'+Date.now(), macro: 'veg', fixedGrams: null }); renderTemplateModalContent(${tpl ? `{id:'${tpl.id}',name:document.getElementById('tpl-name').value}` : 'null'});" class="text-xs font-bold text-sky-600">+ Aggiungi riga</button>
+            </div>
+
+            <div class="divide-y divide-slate-200 border border-slate-200 rounded-md max-h-56 overflow-y-auto">
+              ${editingSlots.map((slot, idx) => `
+                <div class="p-2 bg-slate-50 flex items-center gap-2">
+                  <select onchange="editingSlots[${idx}].macro=this.value" class="bg-white border border-slate-300 rounded px-2 py-1.5 text-xs font-bold flex-1">
+                    ${MACRO_ORDER.map(k => `<option value="${k}" ${slot.macro === k ? 'selected' : ''}>${MACROS[k].label}</option>`).join('')}
+                  </select>
+                  <input type="number" placeholder="g (opz.)" value="${slot.fixedGrams || ''}" onchange="editingSlots[${idx}].fixedGrams = this.value ? parseInt(this.value) : null" class="w-24 bg-white border border-slate-300 rounded px-2 py-1.5 text-xs font-semibold" />
+                  <button type="button" onclick="editingSlots.splice(${idx}, 1); renderTemplateModalContent(${tpl ? `{id:'${tpl.id}',name:document.getElementById('tpl-name').value}` : 'null'});" class="text-rose-600 p-1">
+                    <i class="ph-bold ph-trash text-xs"></i>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Lascia vuoto il campo grammi per usare la porzione standard del singolo alimento.</p>
+          </div>
+
+          <button onclick="saveTemplateForm('${tpl ? tpl.id : ''}')" class="w-full py-2.5 rounded-md bg-sky-600 text-white font-bold text-xs">
+            Salva Struttura Pasto
+          </button>
+        </div>
+      `);
+    }
+
+    function saveTemplateForm(editId) {
+      const name = document.getElementById('tpl-name').value.trim() || 'Pasto Personalizzato';
+      if (editingSlots.length === 0) {
+        showToast('Inserisci almeno un componente', 'error');
+        return;
+      }
+      if (editId) {
+        const idx = state.templates.findIndex(t => t.id === editId);
+        if (idx !== -1) state.templates[idx] = { id: editId, name, slots: editingSlots };
+      } else {
+        state.templates.push({ id: 'tpl-' + Date.now(), name, slots: editingSlots });
+      }
+      saveState();
+      closeModal();
+      render();
+      showToast('Schema pasto salvato!');
+    }
+
+    function openExportModal(mode) {
+      const payload = mode === 'diet'
+        ? { type: 'alimentario_diet', templates: state.templates }
+        : { type: 'alimentario_full', items: state.items, templates: state.templates };
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">${mode === 'diet' ? 'Condividi Struttura Dieta' : 'Esporta Backup Completo'}</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <p class="text-xs text-slate-500 mb-2">Copia questo codice per inviarlo a un amico o conservarlo:</p>
+        <textarea id="export-textarea" readonly rows="5" class="w-full bg-slate-50 border border-slate-300 rounded-md p-2.5 text-[11px] font-mono text-slate-700">${JSON.stringify(payload)}</textarea>
+        <button onclick="copyExportCode()" class="w-full mt-3 py-2.5 rounded-md bg-sky-600 text-white font-bold text-xs">
+          Copia Codice
+        </button>
+      `);
+    }
+
+    function copyExportCode() {
+      const ta = document.getElementById('export-textarea');
+      ta.select();
+      ta.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('Codice copiato negli appunti!');
+      } catch (e) {
+        showToast('Seleziona e copia il testo manualmente', 'info');
+      }
+    }
+
+    function openImportModal() {
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">Importa Dati</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <p class="text-xs text-slate-500 mb-2">Incolla qui il codice JSON ricevuto:</p>
+        <textarea id="import-textarea" rows="5" placeholder='{"type":"alimentario_..."}' class="w-full bg-slate-50 border border-slate-300 rounded-md p-2.5 text-[11px] font-mono text-slate-700"></textarea>
+        <button onclick="processImport()" class="w-full mt-3 py-2.5 rounded-md bg-slate-900 text-white font-bold text-xs">
+          Carica Dati
+        </button>
+      `);
+    }
+
+    function processImport() {
+      try {
+        const data = JSON.parse(document.getElementById('import-textarea').value.trim());
+        if (Array.isArray(data.templates)) state.templates = data.templates;
+        if (Array.isArray(data.items)) state.items = data.items;
+        saveState();
+        closeModal();
+        render();
+        showToast('Dati importati con successo!');
+      } catch (e) {
+        showToast('Codice JSON non valido', 'error');
+      }
+    }
+
+    function openHelpModal() {
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">Come installare Alimentario sul telefono</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+          <p><strong>1. Metti il file online gratis (30 sec):</strong> salva questo file come <code>index.html</code> e caricalo su <strong>tiiny.host</strong> o <strong>app.netlify.com/drop</strong> (da telefono o computer) per ottenere un link permanente.</p>
+          <p><strong>2. Aggiungi alla schermata Home:</strong> apri quel link in <strong>Safari</strong> (iPhone: Condividi → <em>Aggiungi a schermata Home</em>) o <strong>Chrome</strong> (Android: menu tre puntini → <em>Installa app / Aggiungi a schermata Home</em>).</p>
+          <p class="text-slate-400">Tutti i tuoi dati restano salvati in locale sul tuo dispositivo.</p>
+        </div>
+      `);
+    }
+
+    /*************************************************************************
+     * 10. RENDER PRINCIPALE
+     *************************************************************************/
+    function render() {
+      const main = document.getElementById('main-content');
+      if (state.activeTab === 'dispensa') main.innerHTML = renderDispensa();
+      else if (state.activeTab === 'componi') main.innerHTML = renderComponi();
+      else if (state.activeTab === 'idee') main.innerHTML = renderIdee();
+      else if (state.activeTab === 'dieta') main.innerHTML = renderDieta();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      switchTab('dispensa');
+    });
+  </script>
+</body>
+</html>
+``````html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0EA5E9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Alimentario" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%230EA5E9'/><stop offset='100%25' stop-color='%2310B981'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='66' font-size='48' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>A</text></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%230EA5E9'/><stop offset='100%25' stop-color='%2310B981'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='66' font-size='48' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>A</text></svg>" />
+  <title>Alimentario — Inventario Cibo & Generatore Pasti</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            macro: {
+              carb: '#F97316',
+              carbTint: '#FFF7ED',
+              prot: '#E11D48',
+              protTint: '#FFF1F2',
+              veg: '#10B981',
+              vegTint: '#ECFDF5',
+              fat: '#8B5CF6',
+              fatTint: '#F5F3FF',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #F1F5F9;
+      font-family: 'Inter', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade {
+      animation: fadeSlide 0.16s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-sky-100">
+
+  <!-- Contenitore principale fluido a tutta larghezza su mobile -->
+  <div id="app" class="max-w-lg mx-auto min-h-screen bg-white border-x border-slate-200 flex flex-col pb-16">
+
+    <!-- HEADER SUPERIORE FLUIDO -->
+    <header class="sticky top-0 z-30 bg-gradient-to-r from-sky-500 to-emerald-500 text-white px-4 py-3 flex items-center justify-between border-b border-sky-600/20">
+      <div class="flex items-center gap-2.5">
+        <span class="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center font-extrabold text-sm tracking-tight">A</span>
+        <div>
+          <h1 class="text-base font-extrabold tracking-tight leading-none">Alimentario</h1>
+          <p class="text-[11px] text-sky-50/90 font-medium mt-0.5">Dispensa fluida & idee pasto</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <button onclick="openHelpModal()" title="Installa su telefono" class="px-2.5 py-1.5 rounded-md bg-white/15 hover:bg-white/25 text-xs font-semibold flex items-center gap-1 transition">
+          <i class="ph-bold ph-device-mobile text-sm"></i>
+          <span>Installa</span>
+        </button>
+        <button onclick="switchTab('dieta')" title="Condividi o Esporta" class="p-1.5 rounded-md bg-white/15 hover:bg-white/25 transition">
+          <i class="ph-bold ph-export text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- AREA PRINCIPALE CONTINUA -->
+    <main id="main-content" class="flex-1 flex flex-col">
+      <!-- Popolato dinamicamente -->
+    </main>
+
+    <!-- BARRA DI NAVIGAZIONE INFERIORE CONTINUA (4 TAB) -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-40 bg-white border-t border-slate-200 grid grid-cols-4 h-14">
+      <button onclick="switchTab('dispensa')" data-tab="dispensa" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-list-bullets text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Dispensa</span>
+      </button>
+      <button onclick="switchTab('componi')" data-tab="componi" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-fork-knife text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Componi</span>
+      </button>
+      <button onclick="switchTab('idee')" data-tab="idee" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-sparkle text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Idee Pasto</span>
+      </button>
+      <button onclick="switchTab('dieta')" data-tab="dieta" class="nav-btn flex flex-col items-center justify-center border-t-2 transition">
+        <i class="ph-bold ph-sliders-horizontal text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">La Mia Dieta</span>
+      </button>
+    </nav>
+
+    <!-- NOTIFICHE TOAST SOBRIE -->
+    <div id="toast-container" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-[92%] max-w-md flex flex-col items-center gap-1.5"></div>
+
+    <!-- MODALE LINEARE -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/45 z-50 hidden items-end sm:items-center justify-center">
+      <div id="modal-box" class="bg-white w-full max-w-lg rounded-t-xl sm:rounded-xl border border-slate-200 p-4 shadow-xl max-h-[90vh] overflow-y-auto animate-fade">
+        <!-- Contenuto dinamico -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. CONFIGURAZIONE MACRONUTRIENTI E DATI DI PARTENZA
+     *************************************************************************/
+    const STORAGE_KEY = 'alimentario_v1';
+    const MACRO_ORDER = ['carb', 'prot', 'veg', 'fat'];
+
+    const MACROS = {
+      carb: {
+        id: 'carb',
+        label: 'Carboidrati',
+        short: 'Carb',
+        barColor: 'bg-macro-carb',
+        borderLeft: 'border-l-4 border-l-macro-carb',
+        tintBg: 'bg-macro-carbTint',
+        textColor: 'text-macro-carb',
+        badgeClass: 'bg-orange-100 text-orange-800',
+        activePill: 'bg-macro-carb text-white border-macro-carb'
+      },
+      prot: {
+        id: 'prot',
+        label: 'Proteine',
+        short: 'Prot',
+        barColor: 'bg-macro-prot',
+        borderLeft: 'border-l-4 border-l-macro-prot',
+        tintBg: 'bg-macro-protTint',
+        textColor: 'text-macro-prot',
+        badgeClass: 'bg-rose-100 text-rose-800',
+        activePill: 'bg-macro-prot text-white border-macro-prot'
+      },
+      veg: {
+        id: 'veg',
+        label: 'Verdure',
+        short: 'Verd',
+        barColor: 'bg-macro-veg',
+        borderLeft: 'border-l-4 border-l-macro-veg',
+        tintBg: 'bg-macro-vegTint',
+        textColor: 'text-macro-veg',
+        badgeClass: 'bg-emerald-100 text-emerald-800',
+        activePill: 'bg-macro-veg text-white border-macro-veg'
+      },
+      fat: {
+        id: 'fat',
+        label: 'Grassi / Condimenti',
+        short: 'Grassi',
+        barColor: 'bg-macro-fat',
+        borderLeft: 'border-l-4 border-l-macro-fat',
+        tintBg: 'bg-macro-fatTint',
+        textColor: 'text-macro-fat',
+        badgeClass: 'bg-violet-100 text-violet-800',
+        activePill: 'bg-macro-fat text-white border-macro-fat'
+      }
+    };
+
+    const LOCATIONS = ['Frigo', 'Freezer', 'Dispensa'];
+
+    function getRelativeDate(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      return d.toISOString().split('T')[0];
+    }
+
+    const DEFAULT_ITEMS = [
+      { id: '1', name: 'Pane integrale (porzionato)', macro: 'carb', location: 'Freezer', qty: 500, initialQty: 500, portion: 50, unit: 'g', expiry: getRelativeDate(45) },
+      { id: '2', name: 'Penne rigate', macro: 'carb', location: 'Dispensa', qty: 500, initialQty: 500, portion: 80, unit: 'g', expiry: '' },
+      { id: '3', name: 'Riso Basmati', macro: 'carb', location: 'Dispensa', qty: 1000, initialQty: 1000, portion: 80, unit: 'g', expiry: '' },
+      { id: '4', name: 'Petto di pollo', macro: 'prot', location: 'Frigo', qty: 450, initialQty: 450, portion: 150, unit: 'g', expiry: getRelativeDate(2) },
+      { id: '5', name: 'Uova (6 pz)', macro: 'prot', location: 'Frigo', qty: 360, initialQty: 360, portion: 120, unit: 'g', expiry: getRelativeDate(10) },
+      { id: '6', name: 'Salmone surgelato', macro: 'prot', location: 'Freezer', qty: 300, initialQty: 300, portion: 150, unit: 'g', expiry: getRelativeDate(60) },
+      { id: '7', name: 'Ceci cotti', macro: 'prot', location: 'Dispensa', qty: 400, initialQty: 400, portion: 150, unit: 'g', expiry: '' },
+      { id: '8', name: 'Zucchine fresche', macro: 'veg', location: 'Frigo', qty: 600, initialQty: 600, portion: 200, unit: 'g', expiry: getRelativeDate(4) },
+      { id: '9', name: 'Spinaci surgelati', macro: 'veg', location: 'Freezer', qty: 450, initialQty: 450, portion: 150, unit: 'g', expiry: getRelativeDate(90) },
+      { id: '10', name: 'Olio EVO', macro: 'fat', location: 'Dispensa', qty: 750, initialQty: 750, portion: 10, unit: 'ml', expiry: '' },
+      { id: '11', name: 'Mandorle sgusciate', macro: 'fat', location: 'Dispensa', qty: 200, initialQty: 200, portion: 15, unit: 'g', expiry: '' }
+    ];
+
+    const DEFAULT_TEMPLATES = [
+      {
+        id: 'tpl-pranzo',
+        name: 'Pranzo Bilanciato',
+        slots: [
+          { id: 's1', macro: 'carb', fixedGrams: 80 },
+          { id: 's2', macro: 'prot', fixedGrams: 150 },
+          { id: 's3', macro: 'veg', fixedGrams: 200 },
+          { id: 's4', macro: 'fat', fixedGrams: 10 }
+        ]
+      },
+      {
+        id: 'tpl-cena',
+        name: 'Cena Leggera',
+        slots: [
+          { id: 'c1', macro: 'prot', fixedGrams: 150 },
+          { id: 'c2', macro: 'carb', fixedGrams: 50 },
+          { id: 'c3', macro: 'veg', fixedGrams: 200 },
+          { id: 'c4', macro: 'fat', fixedGrams: 10 }
+        ]
+      }
+    ];
+
+    /*************************************************************************
+     * 2. STATO APPLICATIVO
+     *************************************************************************/
+    let state = {
+      activeTab: 'dispensa',
+      items: [],
+      templates: [],
+      // Filtri Dispensa
+      searchQuery: '',
+      filterLocation: 'Tutti',
+      filterMacro: 'Tutti',
+      groupByMacro: true, // true = Raggruppati (Carb -> Prot -> Verd -> Grassi), false = Elenco unico
+      // Tab Componi
+      composeTemplateId: 'tpl-pranzo',
+      composedSelection: {}, // { slotId: { itemId, grams } }
+      // Tab Idee Pasto
+      genTemplateId: 'tpl-pranzo',
+      genMode: 'random', // 'random' | 'craving'
+      cravingItemId: '',
+      cravingLocation: '',
+      prioritizeExpiry: true,
+      generatedMeal: []
+    };
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('dispensasmart_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state.items = Array.isArray(parsed.items) ? parsed.items : DEFAULT_ITEMS;
+          state.templates = Array.isArray(parsed.templates) && parsed.templates.length > 0 ? parsed.templates : DEFAULT_TEMPLATES;
+        } else {
+          state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+          state.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+          saveState();
+        }
+      } catch (e) {
+        state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+        state.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          items: state.items,
+          templates: state.templates
+        }));
+      } catch (e) {
+        showToast('Errore salvataggio locale', 'error');
+      }
+    }
+
+    /*************************************************************************
+     * 3. HELPER E NAVIGAZIONE
+     *************************************************************************/
+    function getExpiryInfo(expiryStr) {
+      if (!expiryStr) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const exp = new Date(expiryStr);
+      exp.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return { label: 'Scaduto', urgent: true, cls: 'text-rose-600 font-bold', days: diffDays };
+      if (diffDays === 0) return { label: 'Scade oggi', urgent: true, cls: 'text-rose-600 font-bold', days: 0 };
+      if (diffDays <= 3) return { label: `Scade tra ${diffDays}g`, urgent: true, cls: 'text-amber-600 font-bold', days: diffDays };
+      return { label: `Scad. ${new Date(expiryStr).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`, urgent: false, cls: 'text-slate-400', days: diffDays };
+    }
+
+    function formatPortions(qty, portion) {
+      if (!portion || portion <= 0 || qty <= 0) return '0 porz.';
+      const count = qty / portion;
+      const clean = Number.isInteger(count) ? count : count.toFixed(1).replace('.0', '');
+      return `${clean} porz.`;
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-600' : type === 'info' ? 'bg-slate-800' : 'bg-emerald-600';
+      el.className = `${bg} text-white text-xs font-semibold px-3.5 py-2 rounded-md shadow-md flex items-center gap-2 animate-fade`;
+      el.innerHTML = `<i class="ph-bold ${type === 'error' ? 'ph-warning-circle' : 'ph-check'}"></i><span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.2s';
+        setTimeout(() => el.remove(), 200);
+      }, 2200);
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.tab === tabName;
+        btn.className = `nav-btn flex flex-col items-center justify-center border-t-2 transition ${
+          active ? 'border-sky-500 text-sky-600 bg-sky-50/40' : 'border-transparent text-slate-400 hover:text-slate-700'
+        }`;
+      });
+      render();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    /*************************************************************************
+     * 4. OPERAZIONI INVENTARIO
+     *************************************************************************/
+    function consumePortion(id) {
+      const item = state.items.find(i => i.id === id);
+      if (!item || item.qty <= 0) return;
+      const used = Math.min(item.qty, item.portion);
+      item.qty = Math.max(0, Math.round((item.qty - used) * 10) / 10);
+      saveState();
+      render();
+      showToast(`Scalati -${used}${item.unit} di ${item.name}`);
+    }
+
+    function restockItem(id, amount) {
+      const item = state.items.find(i => i.id === id);
+      if (!item || amount <= 0) return;
+      item.qty = Math.round((item.qty + amount) * 10) / 10;
+      if (item.qty > item.initialQty) item.initialQty = item.qty;
+      saveState();
+      render();
+      showToast(`Aggiunti +${amount}${item.unit} a ${item.name}`);
+    }
+
+    function deductCustomGrams(id, grams) {
+      const item = state.items.find(i => i.id === id);
+      if (!item || grams <= 0) return;
+      const used = Math.min(item.qty, grams);
+      item.qty = Math.max(0, Math.round((item.qty - used) * 10) / 10);
+      saveState();
+      closeModal();
+      render();
+      showToast(`Scalati -${used}${item.unit} di ${item.name}`);
+    }
+
+    function deleteItem(id) {
+      state.items = state.items.filter(i => i.id !== id);
+      saveState();
+      closeModal();
+      render();
+      showToast('Alimento eliminato', 'info');
+    }
+
+    /*************************************************************************
+     * 5. TAB 1: DISPENSA (Layout Continuo Lineare senza Riquadri Separati)
+     *************************************************************************/
+    function sortItems(list) {
+      return [...list].sort((a, b) => {
+        if ((a.qty > 0) !== (b.qty > 0)) return a.qty > 0 ? -1 : 1;
+        const expA = getExpiryInfo(a.expiry);
+        const expB = getExpiryInfo(b.expiry);
+        if (expA && expB) return expA.days - expB.days;
+        if (expA) return -1;
+        if (expB) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function renderInventoryRow(item) {
+      const m = MACROS[item.macro];
+      const exp = getExpiryInfo(item.expiry);
+      const isOut = item.qty <= 0;
+      const pct = item.initialQty > 0 ? Math.min(100, Math.round((item.qty / item.initialQty) * 100)) : 0;
+
+      return `
+        <div class="relative flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white border-b border-slate-200 ${m.borderLeft} ${isOut ? 'opacity-50 bg-slate-50' : 'hover:bg-slate-50/80'} transition">
+          <!-- Info alimento cliccabili per modifica -->
+          <div onclick="openItemModal('${item.id}')" class="min-w-0 flex-1 cursor-pointer">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-sm text-slate-900 truncate">${item.name}</span>
+              <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">${item.location}</span>
+              ${!state.groupByMacro ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${m.badgeClass} shrink-0">${m.short}</span>` : ''}
+            </div>
+
+            <div class="flex items-center gap-2 mt-1 text-xs">
+              <span class="font-extrabold ${isOut ? 'text-rose-600' : 'text-slate-800'}">${item.qty}${item.unit}</span>
+              <span class="text-slate-300">|</span>
+              <span class="font-semibold text-slate-600">${formatPortions(item.qty, item.portion)}</span>
+              <span class="text-[11px] text-slate-400">(da ${item.portion}${item.unit})</span>
+              ${exp ? `<span class="text-[11px] ${exp.cls}">• ${exp.label}</span>` : ''}
+            </div>
+
+            <!-- Sottile barra livello scorta -->
+            <div class="w-32 h-1 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+              <div class="h-full ${isOut ? 'bg-slate-300' : m.barColor}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+
+          <!-- Azioni rapide compatte a destra -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="consumePortion('${item.id}')" ${isOut ? 'disabled' : ''} title="Scala 1 porzione" class="px-2.5 py-1.5 rounded-md text-xs font-bold transition ${
+              isOut
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95'
+            }">
+              -${item.portion}${item.unit}
+            </button>
+            <button onclick="openQuickAdjustModal('${item.id}')" title="Spesa o grammi liberi" class="w-8 h-8 rounded-md border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center active:scale-95">
+              <i class="ph-bold ph-plus-minus text-sm"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDispensa() {
+      const filtered = state.items.filter(item => {
+        const matchSearch = item.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+        const matchLoc = state.filterLocation === 'Tutti' || item.location === state.filterLocation;
+        const matchMacro = state.filterMacro === 'Tutti' || item.macro === state.filterMacro;
+        return matchSearch && matchLoc && matchMacro;
+      });
+
+      const availableCount = state.items.filter(i => i.qty > 0).length;
+      const expiringCount = state.items.filter(i => i.qty > 0 && getExpiryInfo(i.expiry)?.urgent).length;
+
+      let html = `
+        <!-- FASCIA CONTROLLO CONTINUA IN ALTO -->
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 space-y-2">
+          <!-- Riga 1: Contatori sintetici + Bottone Aggiungi -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-xs text-slate-600">
+              <span><strong class="text-slate-900">${availableCount}</strong> in casa</span>
+              <span class="text-slate-300">•</span>
+              <span class="${expiringCount > 0 ? 'text-amber-600 font-bold' : ''}"><strong>${expiringCount}</strong> in scadenza</span>
+            </div>
+            <button onclick="openItemModal()" class="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 active:scale-95 transition">
+              <i class="ph-bold ph-plus"></i>
+              <span>Aggiungi alimento</span>
+            </button>
+          </div>
+
+          <!-- Riga 2: Ricerca + Switch Vista Raggruppata / Unica -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input type="text" value="${state.searchQuery}" oninput="state.searchQuery=this.value; render();" placeholder="Filtra alimento..." class="w-full bg-white border border-slate-200 rounded-md pl-8 pr-2.5 py-1.5 text-xs focus:outline-none focus:border-sky-500" />
+            </div>
+
+            <div class="flex border border-slate-200 rounded-md overflow-hidden bg-white shrink-0">
+              <button onclick="state.groupByMacro=true; render();" class="px-2.5 py-1.5 text-[11px] font-bold transition ${
+                state.groupByMacro ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-50'
+              }">Raggruppati</button>
+              <button onclick="state.groupByMacro=false; render();" class="px-2.5 py-1.5 text-[11px] font-bold border-l border-slate-200 transition ${
+                !state.groupByMacro ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-50'
+              }">Elenco unico</button>
+            </div>
+          </div>
+
+          <!-- Riga 3: Filtri Luogo e Macro compatti -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            ${['Tutti', ...LOCATIONS].map(loc => `
+              <button onclick="state.filterLocation='${loc}'; render();" class="px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap border transition ${
+                state.filterLocation === loc ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'
+              }">${loc}</button>
+            `).join('')}
+            <span class="text-slate-300 px-0.5">|</span>
+            <button onclick="state.filterMacro='Tutti'; render();" class="px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap border transition ${
+              state.filterMacro === 'Tutti' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-600 border-slate-200'
+            }">Tutti i macro</button>
+            ${MACRO_ORDER.map(k => {
+              const m = MACROS[k];
+              return `<button onclick="state.filterMacro='${m.id}'; render();" class="px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap border transition ${
+                state.filterMacro === m.id ? m.activePill : 'bg-white text-slate-600 border-slate-200'
+              }">${m.short}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      if (filtered.length === 0) {
+        html += `
+          <div class="py-12 px-4 text-center text-slate-500">
+            <p class="text-sm font-bold text-slate-700">Nessun alimento trovato</p>
+            <p class="text-xs mt-1">Modifica i filtri oppure tocca <strong>+ Aggiungi alimento</strong> in alto.</p>
+          </div>
+        `;
+        return html;
+      }
+
+      if (state.groupByMacro) {
+        // FLUSSO CONTINUO CON INTESTAZIONI PIENE PER MACRO (Carb -> Prot -> Verd -> Grassi)
+        html += `<div class="divide-y divide-slate-200">`;
+        MACRO_ORDER.forEach(macroKey => {
+          const groupItems = sortItems(filtered.filter(i => i.macro === macroKey));
+          if (groupItems.length === 0) return;
+
+          const m = MACROS[macroKey];
+          html += `
+            <div>
+              <div class="${m.tintBg} border-b border-slate-200 px-3.5 py-1.5 flex items-center justify-between ${m.borderLeft}">
+                <span class="text-xs font-extrabold uppercase tracking-wider ${m.textColor}">${m.label}</span>
+                <span class="text-[11px] font-bold text-slate-500">${groupItems.length}</span>
+              </div>
+              <div>
+                ${groupItems.map(item => renderInventoryRow(item)).join('')}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      } else {
+        // LISTA UNICA CONTINUA
+        const allSorted = sortItems(filtered);
+        html += `<div>${allSorted.map(item => renderInventoryRow(item)).join('')}</div>`;
+      }
+
+      return html;
+    }
+
+    /*************************************************************************
+     * 6. TAB 2: COMPONI (Abbinamento Manuale Fluido)
+     *************************************************************************/
+    function renderComponi() {
+      const tpl = state.templates.find(t => t.id === state.composeTemplateId) || state.templates[0];
+      if (!tpl) return `<p class="p-4 text-xs text-slate-500">Crea prima una struttura pasto nella scheda La Mia Dieta.</p>`;
+
+      const selectedEntries = Object.entries(state.composedSelection)
+        .map(([slotId, sel]) => {
+          const item = state.items.find(i => i.id === sel.itemId);
+          return item ? { slotId, item, grams: sel.grams } : null;
+        })
+        .filter(Boolean);
+
+      let html = `
+        <!-- FASCIA RIEPILOGO PIATTO CONTINUA IN ALTO -->
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-3 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-extrabold text-slate-900">Componi il tuo piatto</h2>
+              <p class="text-[11px] text-slate-500">Seleziona un alimento per categoria</p>
+            </div>
+            <select onchange="state.composeTemplateId=this.value; state.composedSelection={}; render();" class="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-bold text-slate-800">
+              ${state.templates.map(t => `<option value="${t.id}" ${t.id === tpl.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+            </select>
+          </div>
+
+          ${selectedEntries.length === 0 ? `
+            <div class="py-2.5 px-3 bg-white border border-dashed border-slate-300 rounded-md text-xs text-slate-500">
+              Nessun ingrediente selezionato. Tocca le righe qui sotto per comporre il pasto.
+            </div>
+          ` : `
+            <div class="bg-white border border-slate-200 rounded-md divide-y divide-slate-100">
+              ${selectedEntries.map(({ slotId, item, grams }) => {
+                const m = MACROS[item.macro];
+                return `
+                  <div class="flex items-center justify-between px-3 py-2 ${m.borderLeft}">
+                    <div class="min-w-0 pr-2">
+                      <span class="text-xs font-bold text-slate-900 truncate block">${item.name}</span>
+                      <span class="text-[10px] font-semibold ${m.textColor}">${m.short} • Disp: ${item.qty}${item.unit}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button onclick="adjustComposedGrams('${slotId}', -10)" class="w-6 h-6 rounded border border-slate-200 text-xs font-bold hover:bg-slate-100">-</button>
+                      <span class="text-xs font-extrabold w-12 text-center">${grams}${item.unit}</span>
+                      <button onclick="adjustComposedGrams('${slotId}', 10)" class="w-6 h-6 rounded border border-slate-200 text-xs font-bold hover:bg-slate-100">+</button>
+                      <button onclick="delete state.composedSelection['${slotId}']; render();" class="ml-1 text-slate-400 hover:text-rose-600 p-1">
+                        <i class="ph-bold ph-x text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="confirmComposedMeal()" class="flex-1 py-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-98 transition">
+                <i class="ph-bold ph-check"></i>
+                <span>Ho cucinato questo piatto (Scala tutto)</span>
+              </button>
+              <button onclick="state.composedSelection={}; render();" class="px-3 py-2.5 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600">
+                Reset
+              </button>
+            </div>
+          `}
+        </div>
+
+        <!-- LISTA CONTINUA DEGLI ALIMENTI DISPONIBILI PER SLOT -->
+        <div>
+          ${tpl.slots.map(slot => {
+            const m = MACROS[slot.macro];
+            const items = state.items.filter(i => i.macro === slot.macro && i.qty > 0);
+            const currentSel = state.composedSelection[slot.id];
+
+            return `
+              <div>
+                <div class="${m.tintBg} border-b border-slate-200 px-3.5 py-1.5 flex items-center justify-between ${m.borderLeft}">
+                  <span class="text-xs font-extrabold uppercase tracking-wider ${m.textColor}">${m.label}</span>
+                  <span class="text-[11px] font-bold text-slate-600">${slot.fixedGrams ? `Target dieta: ${slot.fixedGrams}g` : 'Porzione standard'}</span>
+                </div>
+
+                ${items.length === 0 ? `
+                  <div class="px-3.5 py-3 text-xs text-slate-400 border-b border-slate-200">Nessun alimento disponibile in casa.</div>
+                ` : `
+                  <div>
+                    ${items.map(item => {
+                      const isSelected = currentSel && currentSel.itemId === item.id;
+                      const targetGrams = slot.fixedGrams || item.portion;
+                      return `
+                        <button onclick="toggleComposeItem('${slot.id}', '${item.id}', ${targetGrams})" class="w-full text-left px-3.5 py-2.5 border-b border-slate-200 flex items-center justify-between transition ${
+                          isSelected ? 'bg-sky-50/90' : 'bg-white hover:bg-slate-50'
+                        }">
+                          <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 ${
+                              isSelected ? 'bg-sky-600 border-sky-600 text-white' : 'border-slate-300 bg-white'
+                            }">
+                              ${isSelected ? '<i class="ph-bold ph-check text-[10px]"></i>' : ''}
+                            </span>
+                            <div class="min-w-0">
+                              <div class="text-sm font-bold text-slate-900 truncate">${item.name}</div>
+                              <div class="text-[11px] text-slate-500">${item.location} • Disponibili: ${item.qty}${item.unit}</div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-extrabold text-slate-700 shrink-0 ml-2">
+                            ${Math.min(item.qty, targetGrams)}${item.unit}
+                          </span>
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                `}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      return html;
+    }
+
+    function toggleComposeItem(slotId, itemId, defaultGrams) {
+      if (state.composedSelection[slotId]?.itemId === itemId) {
+        delete state.composedSelection[slotId];
+      } else {
+        const item = state.items.find(i => i.id === itemId);
+        const safeGrams = item ? Math.min(item.qty, defaultGrams) : defaultGrams;
+        state.composedSelection[slotId] = { itemId, grams: safeGrams };
+      }
+      render();
+    }
+
+    function adjustComposedGrams(slotId, delta) {
+      const sel = state.composedSelection[slotId];
+      if (!sel) return;
+      const item = state.items.find(i => i.id === sel.itemId);
+      if (!item) return;
+      sel.grams = Math.max(5, Math.min(item.qty, sel.grams + delta));
+      render();
+    }
+
+    function confirmComposedMeal() {
+      const entries = Object.values(state.composedSelection);
+      if (entries.length === 0) return;
+
+      entries.forEach(({ itemId, grams }) => {
+        const item = state.items.find(i => i.id === itemId);
+        if (item) item.qty = Math.max(0, Math.round((item.qty - grams) * 10) / 10);
+      });
+
+      state.composedSelection = {};
+      saveState();
+      render();
+      showToast('Piatto registrato e scorte scalate!');
+    }
+
+    /*************************************************************************
+     * 7. TAB 3: IDEE PASTO (Generatore Casuale o su Preferenza)
+     *************************************************************************/
+    function generateMealPlan(keepLocked = false) {
+      const tpl = state.templates.find(t => t.id === state.genTemplateId) || state.templates[0];
+      if (!tpl) return;
+
+      const availableItems = state.items.filter(i => i.qty > 0);
+      const cravingItem = state.genMode === 'craving' && state.cravingItemId
+        ? availableItems.find(i => i.id === state.cravingItemId)
+        : null;
+
+      let cravingPlaced = false;
+
+      state.generatedMeal = tpl.slots.map(slot => {
+        if (keepLocked) {
+          const existing = state.generatedMeal.find(g => g.slotId === slot.id);
+          if (existing && existing.locked && existing.itemId) return existing;
+        }
+
+        if (cravingItem && !cravingPlaced && cravingItem.macro === slot.macro) {
+          cravingPlaced = true;
+          return {
+            slotId: slot.id,
+            macro: slot.macro,
+            itemId: cravingItem.id,
+            grams: Math.min(cravingItem.qty, slot.fixedGrams || cravingItem.portion),
+            locked: true
+          };
+        }
+
+        let candidates = availableItems.filter(i => i.macro === slot.macro);
+        if (state.genMode === 'craving' && state.cravingLocation) {
+          const locFiltered = candidates.filter(i => i.location === state.cravingLocation);
+          if (locFiltered.length > 0) candidates = locFiltered;
+        }
+
+        if (candidates.length === 0) {
+          return { slotId: slot.id, macro: slot.macro, itemId: null, grams: 0, locked: false };
+        }
+
+        let pool = [];
+        candidates.forEach(c => {
+          const urgent = state.prioritizeExpiry && getExpiryInfo(c.expiry)?.urgent;
+          const weight = urgent ? 3 : 1;
+          for (let k = 0; k < weight; k++) pool.push(c);
+        });
+
+        const chosen = pool[Math.floor(Math.random() * pool.length)];
+        return {
+          slotId: slot.id,
+          macro: slot.macro,
+          itemId: chosen.id,
+          grams: Math.min(chosen.qty, slot.fixedGrams || chosen.portion),
+          locked: false
+        };
+      });
+
+      render();
+    }
+
+    function rerollSingleSlot(slotId) {
+      const current = state.generatedMeal.find(g => g.slotId === slotId);
+      if (!current) return;
+      const tpl = state.templates.find(t => t.id === state.genTemplateId) || state.templates[0];
+      const slot = tpl.slots.find(s => s.id === slotId);
+
+      const candidates = state.items.filter(i => i.qty > 0 && i.macro === current.macro);
+      if (candidates.length === 0) return;
+
+      const alternatives = candidates.length > 1 ? candidates.filter(c => c.id !== current.itemId) : candidates;
+      const chosen = alternatives[Math.floor(Math.random() * alternatives.length)];
+      current.itemId = chosen.id;
+      current.grams = Math.min(chosen.qty, slot?.fixedGrams || chosen.portion);
+      render();
+    }
+
+    function toggleLockSlot(slotId) {
+      const target = state.generatedMeal.find(g => g.slotId === slotId);
+      if (target) {
+        target.locked = !target.locked;
+        render();
+      }
+    }
+
+    function cookGeneratedMeal() {
+      const valid = state.generatedMeal.filter(g => g.itemId && g.grams > 0);
+      if (valid.length === 0) return;
+
+      valid.forEach(g => {
+        const item = state.items.find(i => i.id === g.itemId);
+        if (item) item.qty = Math.max(0, Math.round((item.qty - g.grams) * 10) / 10);
+      });
+
+      saveState();
+      state.generatedMeal = [];
+      render();
+      showToast('Piatto scalato dall\'inventario!');
+    }
+
+    function renderIdee() {
+      const tpl = state.templates.find(t => t.id === state.genTemplateId) || state.templates[0];
+      const availableItems = state.items.filter(i => i.qty > 0);
+
+      let html = `
+        <!-- PARAMETRI GENERATORE IN FASCIA SUPERIORE -->
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-3 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-extrabold text-slate-900">Generatore Idee Pasto</h2>
+              <p class="text-[11px] text-slate-500">Abbina le scorte reali secondo la tua dieta</p>
+            </div>
+            <select onchange="state.genTemplateId=this.value; state.generatedMeal=[]; render();" class="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-bold text-slate-800">
+              ${state.templates.map(t => `<option value="${t.id}" ${t.id === tpl.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 border border-slate-200 rounded-md overflow-hidden bg-white">
+            <button onclick="state.genMode='random'; render();" class="py-2 text-xs font-bold transition ${
+              state.genMode === 'random' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'
+            }">Sorprendimi (Casuale)</button>
+            <button onclick="state.genMode='craving'; render();" class="py-2 text-xs font-bold border-l border-slate-200 transition ${
+              state.genMode === 'craving' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'
+            }">Ho voglia di...</button>
+          </div>
+
+          ${state.genMode === 'craving' ? `
+            <div class="space-y-2 pt-1 animate-fade">
+              <select onchange="state.cravingItemId=this.value; render();" class="w-full bg-white border border-slate-200 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-800">
+                <option value="">Scegli un alimento specifico da includere...</option>
+                ${availableItems.map(i => `
+                  <option value="${i.id}" ${state.cravingItemId === i.id ? 'selected' : ''}>
+                    ${i.name} (${MACROS[i.macro].short} • ${i.qty}${i.unit})
+                  </option>
+                `).join('')}
+              </select>
+              <select onchange="state.cravingLocation=this.value; render();" class="w-full bg-white border border-slate-200 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-800">
+                <option value="">Qualsiasi luogo (Frigo, Freezer, Dispensa)</option>
+                ${LOCATIONS.map(loc => `<option value="${loc}" ${state.cravingLocation === loc ? 'selected' : ''}>Priorità: ${loc}</option>`).join('')}
+              </select>
+            </div>
+          ` : ''}
+
+          <div class="flex items-center justify-between pt-0.5">
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" ${state.prioritizeExpiry ? 'checked' : ''} onchange="state.prioritizeExpiry=this.checked;" class="accent-sky-600" />
+              <span>Priorità ai cibi in scadenza</span>
+            </label>
+            <button onclick="generateMealPlan(false)" class="px-4 py-2 rounded-md bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition">
+              <i class="ph-bold ph-sparkle"></i>
+              <span>${state.generatedMeal.length > 0 ? 'Rigenera' : 'Genera Piatto'}</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (state.generatedMeal.length > 0) {
+        html += `
+          <div class="animate-fade">
+            <div class="bg-sky-50/70 border-b border-slate-200 px-3.5 py-2 flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-sky-800">Proposta ${tpl.name}</span>
+              <button onclick="generateMealPlan(true)" class="text-xs font-bold text-sky-700 hover:underline flex items-center gap-1">
+                <i class="ph-bold ph-arrows-clockwise"></i> Cambia non bloccati
+              </button>
+            </div>
+
+            <div class="divide-y divide-slate-200">
+              ${state.generatedMeal.map(g => {
+                const m = MACROS[g.macro];
+                const item = g.itemId ? state.items.find(i => i.id === g.itemId) : null;
+
+                if (!item) {
+                  return `
+                    <div class="px-3.5 py-3 flex items-center justify-between ${m.borderLeft} bg-slate-50">
+                      <span class="text-xs font-semibold text-slate-500">Nessun alimento disponibile per ${m.label}</span>
+                    </div>
+                  `;
+                }
+
+                return `
+                  <div class="px-3.5 py-3 flex items-center justify-between gap-2 ${m.borderLeft} ${g.locked ? 'bg-slate-50' : 'bg-white'}">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-extrabold uppercase ${m.textColor}">${m.short}</span>
+                        <span class="text-slate-300">•</span>
+                        <span class="text-[11px] text-slate-500">${item.location}</span>
+                      </div>
+                      <div class="text-sm font-bold text-slate-900 truncate mt-0.5">${item.name}</div>
+                      <div class="text-xs font-extrabold text-slate-800 mt-0.5">
+                        Quantità: ${g.grams}${item.unit} <span class="font-normal text-slate-400">(su ${item.qty}${item.unit} disp.)</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button onclick="toggleLockSlot('${g.slotId}')" title="${g.locked ? 'Sblocca' : 'Blocca'}" class="w-8 h-8 rounded-md border flex items-center justify-center transition ${
+                        g.locked ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }">
+                        <i class="ph-bold ${g.locked ? 'ph-lock-key' : 'ph-lock-key-open'} text-sm"></i>
+                      </button>
+                      <button onclick="rerollSingleSlot('${g.slotId}')" title="Cambia solo questo" class="w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-dice-five text-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border-b border-slate-200">
+              <button onclick="cookGeneratedMeal()" class="w-full py-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-98 transition">
+                <i class="ph-bold ph-check"></i>
+                <span>Ho cucinato questo piatto (Scala scorte)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return html;
+    }
+
+    /*************************************************************************
+     * 8. TAB 4: LA MIA DIETA & CONDIVISIONE
+     *************************************************************************/
+    function renderDieta() {
+      return `
+        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-extrabold text-slate-900">Struttura Pasti & Regole</h2>
+            <p class="text-[11px] text-slate-500">Imposta gli schemi della tua nutrizionista</p>
+          </div>
+          <button onclick="openTemplateModal()" class="px-3 py-1.5 rounded-md bg-sky-600 text-white text-xs font-bold flex items-center gap-1">
+            <i class="ph-bold ph-plus"></i> Nuovo Pasto
+          </button>
+        </div>
+
+        <div class="divide-y divide-slate-200 border-b border-slate-200">
+          ${state.templates.map(tpl => `
+            <div class="px-3.5 py-3 bg-white space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="font-extrabold text-sm text-slate-900">${tpl.name}</h3>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="openTemplateModal('${tpl.id}')" class="px-2.5 py-1 rounded border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                    Modifica
+                  </button>
+                  ${state.templates.length > 1 ? `
+                    <button onclick="deleteTemplate('${tpl.id}')" class="p-1.5 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">
+                      <i class="ph-bold ph-trash text-xs"></i>
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-1.5">
+                ${tpl.slots.map(s => {
+                  const m = MACROS[s.macro];
+                  return `<span class="px-2 py-0.5 rounded text-[11px] font-bold ${m.badgeClass}">${m.short}: ${s.fixedGrams ? `${s.fixedGrams}g` : 'porz. alimento'}</span>`;
+                }).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- SEZIONE CONDIVISIONE & GESTIONE DATI -->
+        <div class="px-3.5 py-4 space-y-3">
+          <div>
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Condivisione & Backup</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Esporta la configurazione per condividerla con un amico o salvarla.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openExportModal('all')" class="py-2.5 px-3 rounded-md bg-slate-900 text-white text-xs font-bold text-center">
+              Esporta Tutto (Dispensa + Dieta)
+            </button>
+            <button onclick="openExportModal('diet')" class="py-2.5 px-3 rounded-md border border-slate-300 bg-white text-slate-800 text-xs font-bold text-center">
+              Condividi solo Dieta
+            </button>
+          </div>
+
+          <button onclick="openImportModal()" class="w-full py-2.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold">
+            Importa da Codice JSON
+          </button>
+
+          <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+            <button onclick="clearInventoryOnly()" class="font-semibold text-rose-600 hover:underline">
+              Svuota alimenti (parti da zero)
+            </button>
+            <button onclick="resetToDemoData()" class="font-semibold text-slate-500 hover:underline">
+              Ripristina dati d'esempio
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function deleteTemplate(id) {
+      state.templates = state.templates.filter(t => t.id !== id);
+      if (state.composeTemplateId === id) state.composeTemplateId = state.templates[0]?.id || '';
+      if (state.genTemplateId === id) state.genTemplateId = state.templates[0]?.id || '';
+      saveState();
+      render();
+      showToast('Schema pasto rimosso', 'info');
+    }
+
+    function clearInventoryOnly() {
+      state.items = [];
+      saveState();
+      render();
+      showToast('Dispensa svuotata!', 'info');
+    }
+
+    function resetToDemoData() {
+      state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+      state.templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+      saveState();
+      render();
+      showToast('Dati d\'esempio ripristinati');
+    }
+
+    /*************************************************************************
+     * 9. MODALI LINEARI
+     *************************************************************************/
+    function openModal(html) {
+      const backdrop = document.getElementById('modal-backdrop');
+      document.getElementById('modal-box').innerHTML = html;
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    function closeModal() {
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+    }
+
+    document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-backdrop') closeModal();
+    });
+
+    function openItemModal(editId = null) {
+      const item = editId ? state.items.find(i => i.id === editId) : null;
+      const selectedMacro = item ? item.macro : 'carb';
+      const selectedLoc = item ? item.location : 'Dispensa';
+
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">${item ? 'Modifica Alimento' : 'Nuovo Alimento'}</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <form onsubmit="saveItemForm(event, '${editId || ''}')" class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nome Alimento *</label>
+            <input type="text" id="form-name" required value="${item ? item.name : ''}" placeholder="Es. Pane integrale, Petto di pollo..." class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm font-semibold focus:outline-none focus:border-sky-500" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Macronutriente</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              ${MACRO_ORDER.map(k => {
+                const m = MACROS[k];
+                return `
+                  <label class="cursor-pointer">
+                    <input type="radio" name="form-macro" value="${m.id}" ${selectedMacro === m.id ? 'checked' : ''} class="peer hidden" />
+                    <div class="py-2 px-1 rounded-md border border-slate-200 peer-checked:${m.activePill} text-xs font-bold text-center transition">
+                      ${m.short}
+                    </div>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Conservazione</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              ${LOCATIONS.map(loc => `
+                <label class="cursor-pointer">
+                  <input type="radio" name="form-location" value="${loc}" ${selectedLoc === loc ? 'checked' : ''} class="peer hidden" />
+                  <div class="py-1.5 rounded-md border border-slate-200 peer-checked:bg-slate-800 peer-checked:text-white peer-checked:border-slate-800 text-xs font-bold text-center transition">
+                    ${loc}
+                  </div>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Quantità Tot. *</label>
+              <input type="number" id="form-qty" required min="0" step="any" value="${item ? item.qty : 500}" class="w-full border border-slate-300 rounded-md px-2.5 py-2 text-sm font-bold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">1 Porzione *</label>
+              <input type="number" id="form-portion" required min="1" step="any" value="${item ? item.portion : 50}" class="w-full border border-slate-300 rounded-md px-2.5 py-2 text-sm font-bold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Unità</label>
+              <select id="form-unit" class="w-full border border-slate-300 rounded-md px-2 py-2 text-sm font-bold">
+                <option value="g" ${!item || item.unit === 'g' ? 'selected' : ''}>g</option>
+                <option value="ml" ${item?.unit === 'ml' ? 'selected' : ''}>ml</option>
+                <option value="pz" ${item?.unit === 'pz' ? 'selected' : ''}>pz</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 -mt-1">Es. 500g di pane con porzione da 50g = 10 porzioni scalabili con un clic.</p>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Data di scadenza (opzionale)</label>
+            <input type="date" id="form-expiry" value="${item?.expiry || ''}" class="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm" />
+          </div>
+
+          <div class="pt-2 flex gap-2">
+            ${item ? `<button type="button" onclick="deleteItem('${item.id}')" class="px-3.5 py-2.5 rounded-md border border-rose-200 text-rose-600 font-bold text-xs">Elimina</button>` : ''}
+            <button type="submit" class="flex-1 py-2.5 rounded-md bg-emerald-600 text-white font-bold text-xs">
+              ${item ? 'Salva Modifiche' : 'Salva in Dispensa'}
+            </button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveItemForm(e, editId) {
+      e.preventDefault();
+      const name = document.getElementById('form-name').value.trim();
+      const macro = document.querySelector('input[name="form-macro"]:checked').value;
+      const location = document.querySelector('input[name="form-location"]:checked').value;
+      const qty = parseFloat(document.getElementById('form-qty').value) || 0;
+      const portion = parseFloat(document.getElementById('form-portion').value) || 1;
+      const unit = document.getElementById('form-unit').value;
+      const expiry = document.getElementById('form-expiry').value;
+
+      if (editId) {
+        const idx = state.items.findIndex(i => i.id === editId);
+        if (idx !== -1) {
+          state.items[idx] = {
+            ...state.items[idx],
+            name, macro, location, qty,
+            initialQty: Math.max(state.items[idx].initialQty, qty),
+            portion, unit, expiry
+          };
+        }
+        showToast('Alimento aggiornato');
+      } else {
+        state.items.unshift({
+          id: 'item-' + Date.now(),
+          name, macro, location,
+          qty, initialQty: qty || portion,
+          portion, unit, expiry
+        });
+        showToast(`${name} aggiunto!`);
+      }
+
+      saveState();
+      closeModal();
+      render();
+    }
+
+    function openQuickAdjustModal(id) {
+      const item = state.items.find(i => i.id === id);
+      if (!item) return;
+
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900">${item.name}</h3>
+            <p class="text-xs text-slate-500">Disponibili: <strong>${item.qty}${item.unit}</strong> (${formatPortions(item.qty, item.portion)})</p>
+          </div>
+          <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-md space-y-2">
+            <label class="block text-xs font-bold text-slate-800">Usa quantità personalizzata (${item.unit})</label>
+            <div class="flex gap-2">
+              <input type="number" id="custom-deduct-val" value="${item.portion}" min="1" max="${item.qty}" class="flex-1 bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-sm font-bold" />
+              <button onclick="deductCustomGrams('${item.id}', parseFloat(document.getElementById('custom-deduct-val').value))" class="px-4 py-1.5 rounded-md bg-slate-900 text-white text-xs font-bold">
+                Scala
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-md space-y-2">
+            <label class="block text-xs font-bold text-emerald-900">Ho fatto la spesa (Aggiungi scorte)</label>
+            <div class="flex gap-2">
+              <input type="number" id="custom-add-val" value="${item.initialQty || 500}" min="1" class="flex-1 bg-white border border-emerald-300 rounded-md px-2.5 py-1.5 text-sm font-bold" />
+              <button onclick="restockItem('${item.id}', parseFloat(document.getElementById('custom-add-val').value)); closeModal();" class="px-4 py-1.5 rounded-md bg-emerald-600 text-white text-xs font-bold">
+                + Aggiungi
+              </button>
+            </div>
+            <div class="flex gap-1.5 pt-1">
+              <button onclick="restockItem('${item.id}', ${item.portion}); closeModal();" class="px-2.5 py-1 rounded bg-white border border-emerald-200 text-emerald-800 text-[11px] font-bold">+1 porzione (${item.portion}${item.unit})</button>
+              <button onclick="restockItem('${item.id}', 500); closeModal();" class="px-2.5 py-1 rounded bg-white border border-emerald-200 text-emerald-800 text-[11px] font-bold">+500${item.unit}</button>
+            </div>
+          </div>
+
+          <button onclick="closeModal(); openItemModal('${item.id}');" class="w-full py-2 rounded-md border border-slate-200 text-slate-700 text-xs font-bold">
+            Modifica dettagli alimento
+          </button>
+        </div>
+      `);
+    }
+
+    let editingSlots = [];
+
+    function openTemplateModal(editId = null) {
+      const tpl = editId ? state.templates.find(t => t.id === editId) : null;
+      editingSlots = tpl
+        ? JSON.parse(JSON.stringify(tpl.slots))
+        : [
+            { id: 's-' + Date.now() + '1', macro: 'carb', fixedGrams: 80 },
+            { id: 's-' + Date.now() + '2', macro: 'prot', fixedGrams: 150 },
+            { id: 's-' + Date.now() + '3', macro: 'veg', fixedGrams: 200 }
+          ];
+      renderTemplateModalContent(tpl);
+    }
+
+    function renderTemplateModalContent(tpl) {
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">${tpl ? 'Modifica Schema Pasto' : 'Nuovo Schema Pasto'}</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="space-y-3">
+          <input type="text" id="tpl-name" value="${tpl ? tpl.name : ''}" placeholder="Nome pasto (es. Pranzo Nutrizionista)" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm font-bold" />
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-bold text-slate-700">Macronutrienti e grammature:</label>
+              <button type="button" onclick="editingSlots.push({ id: 's-'+Date.now(), macro: 'veg', fixedGrams: null }); renderTemplateModalContent(${tpl ? `{id:'${tpl.id}',name:document.getElementById('tpl-name').value}` : 'null'});" class="text-xs font-bold text-sky-600">+ Aggiungi riga</button>
+            </div>
+
+            <div class="divide-y divide-slate-200 border border-slate-200 rounded-md max-h-56 overflow-y-auto">
+              ${editingSlots.map((slot, idx) => `
+                <div class="p-2 bg-slate-50 flex items-center gap-2">
+                  <select onchange="editingSlots[${idx}].macro=this.value" class="bg-white border border-slate-300 rounded px-2 py-1.5 text-xs font-bold flex-1">
+                    ${MACRO_ORDER.map(k => `<option value="${k}" ${slot.macro === k ? 'selected' : ''}>${MACROS[k].label}</option>`).join('')}
+                  </select>
+                  <input type="number" placeholder="g (opz.)" value="${slot.fixedGrams || ''}" onchange="editingSlots[${idx}].fixedGrams = this.value ? parseInt(this.value) : null" class="w-24 bg-white border border-slate-300 rounded px-2 py-1.5 text-xs font-semibold" />
+                  <button type="button" onclick="editingSlots.splice(${idx}, 1); renderTemplateModalContent(${tpl ? `{id:'${tpl.id}',name:document.getElementById('tpl-name').value}` : 'null'});" class="text-rose-600 p-1">
+                    <i class="ph-bold ph-trash text-xs"></i>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Lascia vuoto il campo grammi per usare la porzione standard del singolo alimento.</p>
+          </div>
+
+          <button onclick="saveTemplateForm('${tpl ? tpl.id : ''}')" class="w-full py-2.5 rounded-md bg-sky-600 text-white font-bold text-xs">
+            Salva Struttura Pasto
+          </button>
+        </div>
+      `);
+    }
+
+    function saveTemplateForm(editId) {
+      const name = document.getElementById('tpl-name').value.trim() || 'Pasto Personalizzato';
+      if (editingSlots.length === 0) {
+        showToast('Inserisci almeno un componente', 'error');
+        return;
+      }
+      if (editId) {
+        const idx = state.templates.findIndex(t => t.id === editId);
+        if (idx !== -1) state.templates[idx] = { id: editId, name, slots: editingSlots };
+      } else {
+        state.templates.push({ id: 'tpl-' + Date.now(), name, slots: editingSlots });
+      }
+      saveState();
+      closeModal();
+      render();
+      showToast('Schema pasto salvato!');
+    }
+
+    function openExportModal(mode) {
+      const payload = mode === 'diet'
+        ? { type: 'alimentario_diet', templates: state.templates }
+        : { type: 'alimentario_full', items: state.items, templates: state.templates };
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">${mode === 'diet' ? 'Condividi Struttura Dieta' : 'Esporta Backup Completo'}</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <p class="text-xs text-slate-500 mb-2">Copia questo codice per inviarlo a un amico o conservarlo:</p>
+        <textarea id="export-textarea" readonly rows="5" class="w-full bg-slate-50 border border-slate-300 rounded-md p-2.5 text-[11px] font-mono text-slate-700">${JSON.stringify(payload)}</textarea>
+        <button onclick="copyExportCode()" class="w-full mt-3 py-2.5 rounded-md bg-sky-600 text-white font-bold text-xs">
+          Copia Codice
+        </button>
+      `);
+    }
+
+    function copyExportCode() {
+      const ta = document.getElementById('export-textarea');
+      ta.select();
+      ta.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('Codice copiato negli appunti!');
+      } catch (e) {
+        showToast('Seleziona e copia il testo manualmente', 'info');
+      }
+    }
+
+    function openImportModal() {
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">Importa Dati</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <p class="text-xs text-slate-500 mb-2">Incolla qui il codice JSON ricevuto:</p>
+        <textarea id="import-textarea" rows="5" placeholder='{"type":"alimentario_..."}' class="w-full bg-slate-50 border border-slate-300 rounded-md p-2.5 text-[11px] font-mono text-slate-700"></textarea>
+        <button onclick="processImport()" class="w-full mt-3 py-2.5 rounded-md bg-slate-900 text-white font-bold text-xs">
+          Carica Dati
+        </button>
+      `);
+    }
+
+    function processImport() {
+      try {
+        const data = JSON.parse(document.getElementById('import-textarea').value.trim());
+        if (Array.isArray(data.templates)) state.templates = data.templates;
+        if (Array.isArray(data.items)) state.items = data.items;
+        saveState();
+        closeModal();
+        render();
+        showToast('Dati importati con successo!');
+      } catch (e) {
+        showToast('Codice JSON non valido', 'error');
+      }
+    }
+
+    function openHelpModal() {
+      openModal(`
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+          <h3 class="text-sm font-extrabold text-slate-900">Come installare Alimentario sul telefono</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+          <p><strong>1. Metti il file online gratis (30 sec):</strong> salva questo file come <code>index.html</code> e caricalo su <strong>tiiny.host</strong> o <strong>app.netlify.com/drop</strong> (da telefono o computer) per ottenere un link permanente.</p>
+          <p><strong>2. Aggiungi alla schermata Home:</strong> apri quel link in <strong>Safari</strong> (iPhone: Condividi → <em>Aggiungi a schermata Home</em>) o <strong>Chrome</strong> (Android: menu tre puntini → <em>Installa app / Aggiungi a schermata Home</em>).</p>
+          <p class="text-slate-400">Tutti i tuoi dati restano salvati in locale sul tuo dispositivo.</p>
+        </div>
+      `);
+    }
+
+    /*************************************************************************
+     * 10. RENDER PRINCIPALE
+     *************************************************************************/
+    function render() {
+      const main = document.getElementById('main-content');
+      if (state.activeTab === 'dispensa') main.innerHTML = renderDispensa();
+      else if (state.activeTab === 'componi') main.innerHTML = renderComponi();
+      else if (state.activeTab === 'idee') main.innerHTML = renderIdee();
+      else if (state.activeTab === 'dieta') main.innerHTML = renderDieta();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      switchTab('dispensa');
+    });
+  </script>
+</body>
+</html>
+```
